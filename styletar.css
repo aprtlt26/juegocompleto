@@ -1,0 +1,474 @@
+body {
+    background-color: black;
+    color: #e6e6e6;
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 0;
+    overflow: none; /* Asegúrate de que solo se habilite el scroll cuando sea necesario */
+    height: 100%; /* Ajusta esto según la necesidad real de tu diseño */
+}
+
+
+
+section p {
+            font-size: 12px; /* Aumenta el tamaño de la fuente */
+            font-weight: bold; /* Hace el texto más grueso */
+            line-height: 1.0; /* Aumenta el espacio entre líneas para mejor legibilidad */
+            color: #fff; /* Cambia el color del texto a blanco, ajusta según tu diseño */
+            text-align: justify; /* Alinea justificadamente el texto */
+            margin: 0px 400px; /* Añade márgenes alrededor del párrafo para más espacio */
+        margin-top: -350px;
+        }
+
+        @media (max-width: 768px) {
+        section p {
+            font-size: 9px; /* Un poco más pequeño para tabletas */
+            margin: 10px 15px; /* Margen ligeramente más pequeño */
+            padding-top: -960px;
+        }
+    }
+
+    /* Estilos para teléfonos móviles: pantallas con un ancho máximo de 480px */
+    @media (max-width: 480px) {
+        section p {
+            font-size: 9px; /* Más pequeño para teléfonos móviles */
+            margin: 10px 10px;
+        }
+    }
+
+    /* Estilos para pantallas muy pequeñas: pantallas con un ancho máximo de 320px */
+    @media (max-width: 320px) {
+        section p {
+            font-size: 8px; /* Muy pequeño para pantallas muy pequeñas */
+            margin: 5px;
+            
+        }
+    }
+
+#ascii-art{
+   display:flex;
+    word-wrap: break-word;
+    font-size: 5px;
+    line-height: 1;
+    z-index: 2000;
+    cursor: pointer;
+    margin: auto;
+
+ }
+
+    
+#ascii-cat{
+    white-space:pre-wrap;
+    word-wrap: break-word; 
+    font-size: 4px;
+    cursor: pointer;
+    margin: 50px;
+    padding-top: 340px;
+    margin-right: 10px;
+    z-index: 3000;
+ 
+   
+
+}
+    #ascii-container {
+display: flex;    
+height: auto; /* Asegúrate de que pueda expandirse para ajustarse al nuevo tamaño del canvas */
+    z-index: -100;
+margin-top: -200px;
+margin-left: 100px; /* Centra horizontalmente */
+    margin-right: auto;
+}
+
+
+#p5-canvas {
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 10; /* Ajustar según sea necesario */
+    cursor: pointer;
+   margin-left: 30px;
+   
+
+}
+
+#tree-sketch-container {
+    display: flex;
+    width: 800px; /* Ancho del canvas */
+    height: 550px; /* Altura del canvas */
+    position: relative;
+    top: 0;
+    left: 0;
+    font-size: 3px;
+    margin-left: 280px;
+    z-index: 1000;
+    padding-bottom: 500px;
+}
+
+
+#color-bar-sketch-container{
+   display: flex;
+   justify-content: center; /* Centra los elementos horizontalmente dentro del contenedor */
+    align-items: center;
+    z-index: 100;
+    margin-left:auto;
+    margin-right: auto;
+    margin: auto;
+    margin-top: -250px;
+    width: 200px; /* Ancho fijo del contenedor */
+    height: 200px;
+    position: relative; /* Habilita el posicionamiento relativo */
+}
+
+
+#ascii-art-container{
+  position: absolute;
+  
+  left: 30px;
+  width: 80%;
+  height: 80%;
+  top:30%;
+  
+}
+
+
+
+#ascii-sol {
+    font-size: 4px;
+    cursor: pointer;
+    position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
+    top: 0;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
+    right: 0;           /* Alinea el lado derecho del elemento con el lado derecho del contenedor */
+    margin-right:90px; /* Agrega un pequeño margen derecho, si es necesario */
+    z-index: 2000;      /* Asegura que el elemento sea visible sobre otros posibles elementos */
+}
+
+#ascii-luna {
+    font-size: 5px;
+    z-index: 1000; 
+    cursor: pointer;
+    position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
+    top: 20;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
+    left: 0;
+    margin-left:90px;  
+    z-index: 2000;
+
+}
+
+#rain-sketch-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            pointer-events: none; /* Permite hacer clic a través del contenedor */
+
+        } 
+
+       /* Reglas de media query para dispositivos con ancho máximo de 600px */
+@media (max-width: 600px) {
+    body {
+
+        overflow: hidden;
+        height: 100%;
+    }
+
+    #p5-canvas {
+            width: 100%;  /* Ocupa el ancho completo de la pantalla para evitar el desbordamiento horizontal */
+            height: auto; /* Altura automática basada en el aspecto del canvas */
+            position: absolute;
+            top: -200px;    /* Ajusta esta propiedad para subir o bajar el canvas */
+            left: 0;      /* Alinea al centro horizontalmente */
+            z-index: 5;   /* Asegura que esté debajo del ascii-cat si es necesario */
+        }
+
+        #ascii-cat {
+            position: absolute; /* Posicionamiento absoluto para mejor control */
+            left: 0%;
+            right: 0;     /* Alinea al centro horizontalmente */
+            width: 100%; /* Ocupa el ancho completo de la pantalla */
+            font-size: 3px; /* Ajusta el tamaño de la fuente si es necesario */
+            z-index: 100;
+            margin:10px;
+            margin-top: 70px;
+        }
+
+     
+
+    #ascii-art  {
+        display: flex;
+        font-size: 4px; /* Ajusta el tamaño de la fuente para visibilidad en pantallas pequeñas */
+        margin: 0 60px; /* Agrega márgenes laterales para no tocar los bordes de la pantalla */
+        margin-top: -140px;
+        
+    }
+  
+
+    #ascii-sol{
+        display: flex;
+        font-size: 2.3px; /* Ajusta el tamaño de la fuente para visibilidad en pantallas pequeñas */
+        margin-left: 0;
+       z-index: 2000;
+       margin: 8px;
+
+    }
+    #ascii-luna{
+        margin-left: 0;
+        margin-right:0;
+        font-size: 2.8px;
+        margin: 3px;
+
+    }
+
+    #tree-sketch-container  {
+        display: flex;
+        margin-left: 0px;
+        margin-right:0px;
+        width: 50%; /* Reduce el ancho para evitar desbordamiento horizontal */
+    z-index: -100;
+    height: 50vh; 
+    }
+    
+    #color-bar-sketch-container{
+display:flex;
+margin-left: 0px; /* Ajusta el margen izquierdo para centrar */
+        margin-right: 0px; /* Ajusta el margen derecho para centrar */
+
+    }
+
+    #ascii-container {
+        display: flex;
+        margin-top: 0; /* Elimina el margen superior excesivo en móviles */
+        margin-left: 0px; /* Ajusta el margen izquierdo para centrar */
+        margin-right: 0px; /* Ajusta el margen derecho para centrar */
+        flex-direction:row; /* Alinea los elementos verticalmente */
+        z-index:1000;
+        
+    }
+
+    #rain-sketch-container {
+        height: 50vh; /* Asegura que el contenedor de lluvia ocupe todo el alto disponible */
+    }
+
+   }
+/* Reglas adicionales para orientación horizontal (landscape) */
+@media (max-width: 600px) and (orientation: landscape) {
+    body {
+        flex-direction: flex
+        ; /* Organiza los contenedores en fila en lugar de columna */
+        height: 100%;
+        overflow: hidden;
+    }
+
+    #ascii-ArbolG-container {
+    position: absolute;
+    width: 100%;
+    color: rgb(187, 242, 132);
+    text-align: center;
+    font-size: 10px;
+    line-height: 1;
+}
+
+
+    #tree-sketch-container, #color-bar-sketch-container {
+        width: 48%; /* Asigna un ancho menor para cada contenedor */
+        height: 40%; /* Ajusta la altura automáticamente */
+        margin-top: 5px; /* Ajusta el margen superior */
+        margin-bottom: 5px; /* Ajusta el margen inferior */
+    }
+ 
+    #p5-canvas{
+        width: 48%; /* Asigna un ancho menor para cada contenedor */
+        height: 40%; /* Ajusta la altura automáticamente */
+        margin-top: -500px; /* Ajusta el margen superior */
+        margin-bottom: 5px;/* Ajusta este valor según sea necesario para subir el canvas */
+        }
+
+
+
+        footer, .ultimo-elemento {
+    margin-top: -500px;
+    margin-bottom: -100;
+    font-size: 10px;
+    justify-content: center;
+    text-align: center;
+    color: rgb(142, 142, 248);
+        }
+ 
+    }
+
+
+    @media (max-width: 768px) {
+    #ascii-ArbolG-container {
+        font-size: 8px; /* Reduce el tamaño de la fuente para tabletas */
+    }
+}
+
+/* Estilos para teléfonos móviles: pantallas con un ancho máximo de 480px */
+@media (max-width: 480px) {
+    #ascii-ArbolG-container {
+        font-size: 6px; /* Reduce aún más el tamaño de la fuente para móviles */
+    }
+}
+
+/* Estilos para pantallas muy pequeñas: pantallas con un ancho máximo de 320px */
+@media (max-width: 320px) {
+    #ascii-ArbolG-container {
+        font-size: 5px; /* Tamaño de fuente muy pequeño para pantallas muy pequeñas */
+    }
+}
+
+#ascii-ArbolG-container {
+    position: absolute;
+    left: 50%; /* Centra horizontalmente respecto al 50% del ancho del contenedor padre */
+    transform: translate(-50%, -50%); /* Ajusta el desplazamiento para que el centro del elemento sea el punto de referencia */
+    z-index: 1500; /* Asegúrate de que esté sobre otros elementos si necesario */
+    text-align: center;
+    font-size: 11px; /* Ajusta según necesidad para diferentes tamaños de pantalla con media queries si es necesario */
+    width: auto; /* Ancho auto para ajustar al contenido */
+    height: auto; /* Altura auto para ajustar al contenido */
+    top: 980px;
+}
+
+
+footer {
+    width: 100%;
+    padding: 5px 5;
+    text-align: center;
+    background-color: #000000;
+    color: rgb(209, 209, 209);
+    margin-left: -50px;
+    font-size: 16px; /* Tamaño de letra inicial */
+    box-shadow: 0 -2px 5px rgba(255, 255, 255, 0.428); /* Sombra opcional para dar efecto elevado */
+}
+
+
+
+ 
+
+    @media (max-width: 768px) {
+        section {
+            display: flex;
+            margin: 60px; /* Menos margen en dispositivos más pequeños */
+            margin-top: -600px;
+            justify-content: center;
+            left: 0;
+            right: 0;
+
+
+        }
+
+        #ascii-ArbolG-container {
+    position: absolute;
+    left: 50%; /* Centra horizontalmente respecto al 50% del ancho del contenedor padre */
+    transform: translate(-50%, -50%); /* Ajusta el desplazamiento para que el centro del elemento sea el punto de referencia */
+    z-index: 1500; /* Asegúrate de que esté sobre otros elementos si necesario */
+    text-align: center;
+    font-size: 5px; /* Ajusta según necesidad para diferentes tamaños de pantalla con media queries si es necesario */
+    width: auto; /* Ancho auto para ajustar al contenido */
+    height: auto; /* Altura auto para ajustar al contenido */
+    top: -280px;
+}
+
+
+    }
+
+  
+
+
+
+.body-content {
+    margin-bottom: 0;
+}
+
+/* Optimiza los estilos de media query para reducir espacio en dispositivos más pequeños */
+@media (max-width: 768px) {
+    body {
+        padding-bottom: 10px; /* Reduce este valor si aún ves espacio extra */
+    overflow: hidden;
+    }
+
+    footer, .ultimo-elemento {
+    margin-top: 100px;
+    margin-bottom: -100;
+    font-size: 10px;
+    justify-content: center;
+    text-align: center;
+    color: rgb(142, 142, 248);
+        }
+}
+
+#container, .container {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+* {
+    margin: 0;
+    padding: 0;
+}
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+}
+
+#ascii-art {
+    position: absolute;
+    top: 300px;
+    left: 600px;
+    white-space: pre;
+    font-family: monospace;
+    z-index: 20000;
+}
+
+.snake {
+    position: absolute;
+    white-space: pre;
+    font-family: monospace;
+    color: rgb(242, 242, 242);
+    margin-top: 300px;
+    z-index: 50000;
+
+
+}
+
+.ball {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 69, 0, 0.8), 0 0 20px rgba(255, 69, 0, 0.6), 0 0 30px rgba(255, 69, 0, 0.4);
+    animation: fireball 1s linear infinite;
+    z-index: 1000; /* Ensure balls are on top of other elements */
+}
+
+@keyframes fireball {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.5);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.glow {
+    animation: glow 2s ease-in-out 1;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #ff0, 0 0 50px #ff0, 0 0 60px #ff0, 0 0 70px #ff0;
+    }
+    to {
+        text-shadow: 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #ff0, 0 0 50px #ff0, 0 0 60px #ff0, 0 0 70px #ff0, 0 0 80px #ff0;
+    }
+}
+
+.permanent-glow {
+    text-shadow: 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #ff0, 0 0 50px #ff0, 0 0 60px #ff0, 0 0 70px #ff0, 0 0 80px #ff0;
+}
+
