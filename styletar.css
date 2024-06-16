@@ -421,54 +421,27 @@ footer {
     z-index: 20000;
 }
 
-.snake {
-    position: absolute;
-    white-space: pre;
-    font-family: monospace;
-    color: rgb(242, 242, 242);
-    margin-top: 300px;
-    z-index: 50000;
 
-
-}
-
-.ball {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: red;
-    border-radius: 50%;
-    box-shadow: 0 0 10px rgba(255, 69, 0, 0.8), 0 0 20px rgba(255, 69, 0, 0.6), 0 0 30px rgba(255, 69, 0, 0.4);
-    animation: fireball 1s linear infinite;
-    z-index: 1000; /* Ensure balls are on top of other elements */
-}
-
-@keyframes fireball {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.5);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
+/* Añade esta clase al CSS para la iluminación */
 .glow {
-    animation: glow 2s ease-in-out 1;
+    animation: glow 1s infinite alternate;
 }
-
 @keyframes glow {
     from {
-        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #ff0, 0 0 50px #ff0, 0 0 60px #ff0, 0 0 70px #ff0;
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #2600ff, 0 0 40px #0033ff, 0 0 50px #005eff, 0 0 60px #0091ff, 0 0 70px #00eaff;
     }
     to {
-        text-shadow: 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #ff0, 0 0 50px #ff0, 0 0 60px #ff0, 0 0 70px #ff0, 0 0 80px #ff0;
+        text-shadow: 0 0 20px #fff, 0 0 30px #00a2ff, 0 0 40px #ff0019, 0 0 50px #ff0000, 0 0 60px #ff0073, 0 0 70px #1713f3, 0 0 80px #ff0000;
     }
 }
 
-.permanent-glow {
-    text-shadow: 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #ff0, 0 0 50px #ff0, 0 0 60px #ff0, 0 0 70px #ff0, 0 0 80px #ff0;
+
+.fireball {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: red;
+    border-radius: 50%;
+    box-shadow: 0 0 10px orange, 0 0 20px orange, 0 0 30px red, 0 0 40px red, 0 0 50px yellow, 0 0 60px yellow;
 }
 
