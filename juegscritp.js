@@ -1,5 +1,5 @@
   
-  
+ 
   
   
   
@@ -513,35 +513,76 @@ document.body.addEventListener('click', function() {
   // Comprueba si el intervalo ya está establecido
   if (!shuffleIntervalId) {
     shuffleIntervalId = setInterval(function() {
-      shuffleAscii(document.getElementById('ascii-sol'));
-      shuffleAscii(document.getElementById('ascii-luna'));
+     
       shuffleAscii(document.getElementById('ascii-cat'));
       shuffleAscii(document.getElementById('ascii-mountain'));
     shuffleAscii(document.getElementById('glax tree2'));
         shuffleAscii(document.getElementById('text'));
+         shuffleAscii(document.getElementById('ascii-sol'));
+      shuffleAscii(document.getElementById('ascii-luna'));
 
     }, 20); // Cambia los caracteres cada 20 milisegundos
   }
 });
 
-
 function shuffleAscii(element) {
-  if (!element) return; // Verificar que el elemento existe
-  
+  if (!element) return;
+
+  // Elegimos el set según el modo
+  const characters = glitchMode ? asciiCharsGlitch : asciiCharsNormal;
+
   let newText = '';
-  const characters = ['@', '#', '$', '%', '&', '*', '-', '+', '=', '?', ';', ':', ',', '.', '▒', '▓', '▒', '░', '█', '▓', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o', 'p', 'q' ];
-  
+
   for (let char of element.innerText) {
-    if (characters.includes(char)) {
-      let randomChar = characters[Math.floor(Math.random() * characters.length)];
-      newText += randomChar;
+    if (asciiTargetChars.includes(char)) {
+      const randomChar = characters[Math.floor(Math.random() * characters.length)];
+      newText += randomChar;   // aquí a veces serán strings con espacios
     } else {
       newText += char;
     }
   }
-  
+
   element.innerText = newText;
 }
+
+
+// ===== MODOS DE CARACTERES PARA EL ASCII =====
+let glitchMode = false;  // false = normal, true = glitch
+
+// caracteres base (todo de 1 solo carácter)
+const asciiCharsNormal = [
+  '@', '#', '▒', '▓', '▒', '░', '█', '▓',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o',
+  'p', 'q'
+];
+
+// mismos caracteres “objetivo” sobre el texto original
+// (solo 1 carácter cada uno, para que el includes funcione bien)
+const asciiTargetChars = [
+  '@', '#', '▒', '▓', '▒', '░', '█', '▓',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o',
+  'p', 'q'
+];
+
+// caracteres en modo glitch (aquí metemos los “trucos” con espacios)
+const asciiCharsGlitch = [
+  '@ ',  '#  ', '▒ ', '▓  ', '▒   ', '░ ', '█  ', '▓   ',
+  'a ', 'b  ', 'c   ', 'd ', 'e  ', 'f   ', 'g ', 'h  ',
+  'i   ', 'j ', 'k  ', 'l   ', 'm ', 'n  ', 'ñ   ', 'o ',
+  'p  ', 'q   '
+];
+
+
+// Tecla G para activar / desactivar GLITCH ASCII
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'g' || event.key === 'G') {
+    glitchMode = !glitchMode;
+    console.log('ASCII glitch mode:', glitchMode ? 'ON' : 'OFF');
+  }
+});
+
 
 
 function generarRuidoBlanco(duracion = 10) {
@@ -882,7 +923,7 @@ p.draw = function() {
 
             if (!L.isDead()) {
                 let s = L.flashStrength();
-                flashStrength += s * 0.3;
+                flashStrength += s * 0.2;
             } else {
                 lightnings.splice(i, 1);
             }
@@ -891,7 +932,7 @@ p.draw = function() {
         if (flashStrength > 0) {
             p.push();
             p.noStroke();
-            const intensity = p.min(flashStrength, 1.0);
+            const intensity = p.min(flashStrength, 3.0);
             p.fill(255, 244, 200, 180 * intensity);
             p.rect(0, 0, p.width, p.height);
             p.pop();
@@ -1005,7 +1046,7 @@ p.draw = function() {
 
         // ================= 3) BLOQUES DE RUIDO MUY RÁPIDOS =================
         p.push();
-        let blocks = 150; // MÁS BLOQUES
+        let blocks = 130; // MÁS BLOQUES
         for (let i = 0; i < blocks; i++) {
             // 90% DE PROBABILIDAD - CASI SIEMPRE VISIBLES
             if (p.random() > 0.1) {
@@ -1040,7 +1081,7 @@ p.draw = function() {
     function drawPortalGlitch(p, snapshot) {
     const W  = p.width;
     const H  = p.height;
-    const cx = W * 0.5;
+    const cx = W * 0.8;
 
     // grieta más estrecha
     const portalW = W * 0.14;
@@ -1173,10 +1214,10 @@ p.draw = function() {
             this.mainPath.push({ x, y });
 
             // pasos cortos → rayo más suave y continuo
-            let steps = p.int(p.random(25, 60));
+            let steps = p.int(p.random(25, 30));
             for (let i = 0; i < steps; i++) {
-                x += p.random(-18, 18);  // zig-zag lateral suave
-                y += p.random(14, 28);   // baja hacia abajo
+                x += p.random(-18, 18);  
+                y += p.random(14, 18);   
                 this.mainPath.push({ x, y });
             }
 
@@ -1202,7 +1243,7 @@ p.draw = function() {
             }
 
             this.life = 0;
-            this.maxLife = p.int(p.random(35, 70));
+            this.maxLife = p.int(p.random(15, 20));
         }
 
         update() {
@@ -1251,7 +1292,7 @@ p.draw = function() {
         flashStrength() {
             let t = this.life / this.maxLife;
 
-            if (t < 0.2) {
+            if (t < 0.1) {
                 return this.p.map(t, 0.0, 0.2, 0.2, 1.0);
             } else if (t < 0.35) {
                 return this.p.map(t, 0.2, 0.35, 1.0, 0.4);
@@ -2049,4 +2090,5 @@ function resetGame() {
     
     console.log("JUEGO REINICIADO - Personaje liberado");
 }
+
 
