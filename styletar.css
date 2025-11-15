@@ -164,7 +164,7 @@ margin-left: 80px; /* Centra horizontalmente */
     position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
     top: 30;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
     right: 0;           /* Alinea el lado derecho del elemento con el lado derecho del contenedor */
-    margin-right:220px; /* Agrega un pequeño margen derecho, si es necesario */
+    margin-right:320px; /* Agrega un pequeño margen derecho, si es necesario */
     z-index: 2000;      /* Asegura que el elemento sea visible sobre otros posibles elementos */
 }
 
@@ -175,7 +175,7 @@ margin-left: 80px; /* Centra horizontalmente */
     position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
     top: 30;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
     left: 0;
-    margin-left:180px;  
+    margin-left:280px;  
     z-index: 2000;
 
 }
