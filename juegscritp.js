@@ -1,4 +1,5 @@
-    
+  
+  
   
   
   
@@ -149,20 +150,30 @@ setInterval(debugEstado, 2000);
 // ====== ELIMINAR LA VARIABLE LOCAL enableMovementAndJump ======
 // BUSCA en DOMContentLoaded y ELIMINA esta línea:
 // let enableMovementAndJump = true;
-
-// ====== HACER QUE LA BARRA ESPACIADORA ACTIVE EL RUIDO BLANCO ======
+// ====== BARRA ESPACIADORA: RUIDO BLANCO + GLITCH ASCII ======
 document.addEventListener('keydown', function(event) {
     if (event.key === ' ') {
-        // Activar/desactivar ruido blanco con barra espaciadora
+        // Activar / desactivar ruido blanco con barra espaciadora
         if (!ruidoBlancoActivo) {
             generarRuidoBlanco();
             ruidoBlancoActivo = true;
+
+            // 🔥 activar glitch (lo mismo que hacías con la tecla G)
+            glitchMode = true;
         } else {
-            if (whiteNoiseSource) whiteNoiseSource.stop();
+            if (whiteNoiseSource) {
+                try { 
+                    whiteNoiseSource.stop(); 
+                } catch (e) {}
+            }
             ruidoBlancoActivo = false;
+
+            // ⛔ apagar glitch y devolver ASCII al estado base
+            glitchMode = false;
         }
+
         verificarLiberacion();
-        event.preventDefault();
+        event.preventDefault(); // que la página no haga scroll
     }
 });
 
@@ -2086,6 +2097,5 @@ function resetGame() {
     
     console.log("JUEGO REINICIADO - Personaje liberado");
 }
-
 
 
