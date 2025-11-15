@@ -309,6 +309,9 @@ function shuffleAsciiArtAndSound() {
   }
   asciiArtElement.innerText = newText;
 
+
+  
+
   // AGREGAR: Shuffle del árbol
   const asciiMountain = document.getElementById('ascii-mountain');
   if (asciiMountain) {
@@ -326,6 +329,8 @@ function shuffleAsciiArtAndSound() {
 
   oscilador.frequency.value = Math.random() * (100 - 500) + 0;
 }
+
+
 
 
 
@@ -525,15 +530,19 @@ document.body.addEventListener('click', function() {
     shuffleIntervalId = setInterval(function() {
      
       shuffleAscii(document.getElementById('ascii-cat'));
+            shuffleAscii(document.getElementById('ascii-cat2'));
+
       shuffleAscii(document.getElementById('ascii-mountain'));
+          shuffleAscii(document.getElementById('ascii-sol'));
+      shuffleAscii(document.getElementById('ascii-luna'));
     shuffleAscii(document.getElementById('glax tree2'));
         shuffleAscii(document.getElementById('text'));
-         shuffleAscii(document.getElementById('ascii-sol'));
-      shuffleAscii(document.getElementById('ascii-luna'));
+     
 
     }, 20); // Cambia los caracteres cada 20 milisegundos
   }
 });
+
 function shuffleAscii(element) {
   if (!element) return;
 
@@ -542,19 +551,17 @@ function shuffleAscii(element) {
     element.dataset.baseText = element.innerText;
   }
 
-  // Si el glitch está apagado, volvemos al estado original y salimos
-  if (!glitchMode) {
-    element.innerText = element.dataset.baseText;
-    return;
-  }
-
-  // Si el glitch está encendido, partimos SIEMPRE del texto original
   const source = element.dataset.baseText;
   let newText = '';
 
+  // tabla de reemplazo:
+  // - glitchMode = true  → usa asciiCharsGlitch (con espacios, más roto)
+  // - glitchMode = false → usa asciiTargetChars (shuffle normal)
+  const table = glitchMode ? asciiCharsGlitch : asciiTargetChars;
+
   for (let char of source) {
     if (asciiTargetChars.includes(char)) {
-      const randomChar = asciiCharsGlitch[Math.floor(Math.random() * asciiCharsGlitch.length)];
+      const randomChar = table[Math.floor(Math.random() * table.length)];
       newText += randomChar;
     } else {
       newText += char;
