@@ -1,7 +1,8 @@
 body {
     background-color: black;
-    color: #e6e6e6;
-    font-family: 'Courier New', Courier, monospace;
+    color: #d5ed8cac;
+            font-family: "Fira Code", "Courier New", monospace;
+        font-size: 11px   ;
     margin: 0;
     padding: 0;
     min-height: 100vh;       /* La página ocupa como mínimo toda la altura */
@@ -28,10 +29,12 @@ body {
 
 
 section p {
-            font-size: 10px; /* Aumenta el tamaño de la fuente */
-            font-weight: bold; /* Hace el texto más grueso */
+            font-size: 9px; /* Aumenta el tamaño de la fuente */
+
+            font-family: "Fira Code", "Courier New", monospace;
+
             line-height: 1.0; /* Aumenta el espacio entre líneas para mejor legibilidad */
-            color: #fff; /* Cambia el color del texto a blanco, ajusta según tu diseño */
+            color: #ecfca3; /* Cambia el color del texto a blanco, ajusta según tu diseño */
             text-align: justify; /* Alinea justificadamente el texto */
             margin: 0px 400px; /* Añade márgenes alrededor del párrafo para más espacio */
         margin-top: 150px;
@@ -987,4 +990,28 @@ canvas,
     100% {
         transform: translateY(100%);
     }
+}
+
+
+
+/* OVERLAY PARA LA ALERTA DE TRAMPA */
+#trap-alert {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    display: none;               /* se enciende con JS: display:flex */
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+/* estados de los 3 sonidos dentro del alert */
+.status-pending {
+    color: #ff5555;
+    font-weight: bold;
+}
+
+.status-completed {
+    color: #40ff00;
+    font-weight: bold;
 }
