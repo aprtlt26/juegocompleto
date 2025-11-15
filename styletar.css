@@ -4,20 +4,37 @@ body {
     font-family: 'Courier New', Courier, monospace;
     margin: 0;
     padding: 0;
-    overflow: none; /* Asegúrate de que solo se habilite el scroll cuando sea necesario */
-    height: 100%; /* Ajusta esto según la necesidad real de tu diseño */
+    min-height: 100vh;       /* La página ocupa como mínimo toda la altura */
+    height: auto;            /* Deja que crezca si el contenido es mayor */
+    overflow-x: hidden;      /* Sin scroll horizontal */
+    overflow-y: auto;        /* Scroll vertical normal */
 }
 
 
+#world-wrapper {
+  max-width: 1200px;       /* ancho máximo del “escenario” */
+  margin: 0 auto;          /* centrado horizontal */
+  padding-top: 40px;
+}
+
+#world-wrapper pre {
+  font-family: monospace;
+  white-space: pre;
+  line-height: 1;
+  font-size: 6px;          /* ajusta para escalar el dibujo */
+  margin: 0 auto 40px;     /* separación entre dibujos */
+  display: block;
+}
+
 
 section p {
-            font-size: 12px; /* Aumenta el tamaño de la fuente */
+            font-size: 10px; /* Aumenta el tamaño de la fuente */
             font-weight: bold; /* Hace el texto más grueso */
             line-height: 1.0; /* Aumenta el espacio entre líneas para mejor legibilidad */
             color: #fff; /* Cambia el color del texto a blanco, ajusta según tu diseño */
             text-align: justify; /* Alinea justificadamente el texto */
             margin: 0px 400px; /* Añade márgenes alrededor del párrafo para más espacio */
-        margin-top: -350px;
+        margin-top: 150px;
         }
 
         @media (max-width: 768px) {
@@ -48,35 +65,42 @@ section p {
 #ascii-art{
    display:flex;
     word-wrap: break-word;
-    font-size: 5px;
+    font-size: 3px;
     line-height: 1;
-    z-index: 2000;
+    z-index: 900000;
     cursor: pointer;
     margin: auto;
-
+  margin-top: 230px;
+  margin-left: -400px;
+  
  }
+
 
     
 #ascii-cat{
+    display: flex;
     white-space:pre-wrap;
     word-wrap: break-word; 
-    font-size: 4px;
+    font-size: 6px;
     cursor: pointer;
-    margin: 50px;
-    padding-top: 340px;
-    margin-right: 10px;
-    z-index: 3000;
+    margin: 20px;
+                width: 100%; /* Ocupa el ancho completo de la pantalla */
+
+    padding-top: 290px;
+    z-index: 9999933000;
  
    
 
 }
     #ascii-container {
+    
 display: flex;    
 height: auto; /* Asegúrate de que pueda expandirse para ajustarse al nuevo tamaño del canvas */
-    z-index: -100;
-margin-top: -200px;
-margin-left: 100px; /* Centra horizontalmente */
+    z-index: -90000000;
+margin-top: -120px;
+margin-left: 80px; /* Centra horizontalmente */
     margin-right: auto;
+    top: 300px;
 }
 
 
@@ -84,9 +108,9 @@ margin-left: 100px; /* Centra horizontalmente */
     position: relative;
     top: 0;
     left: 0;
-    z-index: 10; /* Ajustar según sea necesario */
+    z-index:  -10; /* Ajustar según sea necesario */
     cursor: pointer;
-   margin-left: 30px;
+   margin-left: 0px;
    
 
 }
@@ -94,11 +118,11 @@ margin-left: 100px; /* Centra horizontalmente */
 #tree-sketch-container {
     display: flex;
     width: 800px; /* Ancho del canvas */
-    height: 550px; /* Altura del canvas */
+    height: 650px; /* Altura del canvas */
     position: relative;
     top: 0;
     left: 0;
-    font-size: 3px;
+    font-size: 2px;
     margin-left: 280px;
     z-index: 1000;
     padding-bottom: 500px;
@@ -123,33 +147,35 @@ margin-left: 100px; /* Centra horizontalmente */
 #ascii-art-container{
   position: absolute;
   
-  left: 30px;
+   
+     margin-top: -340px;
+  left: 10px;
   width: 80%;
   height: 80%;
-  top:30%;
+
   
 }
 
 
 
 #ascii-sol {
-    font-size: 4px;
+    font-size: 2.5px;
     cursor: pointer;
     position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
-    top: 0;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
+    top: 30;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
     right: 0;           /* Alinea el lado derecho del elemento con el lado derecho del contenedor */
-    margin-right:90px; /* Agrega un pequeño margen derecho, si es necesario */
+    margin-right:220px; /* Agrega un pequeño margen derecho, si es necesario */
     z-index: 2000;      /* Asegura que el elemento sea visible sobre otros posibles elementos */
 }
 
 #ascii-luna {
-    font-size: 5px;
+    font-size: 3.5px;
     z-index: 1000; 
     cursor: pointer;
     position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
-    top: 20;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
+    top: 30;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
     left: 0;
-    margin-left:90px;  
+    margin-left:180px;  
     z-index: 2000;
 
 }
@@ -197,7 +223,7 @@ margin-left: 100px; /* Centra horizontalmente */
 
     #ascii-art  {
         display: flex;
-        font-size: 4px; /* Ajusta el tamaño de la fuente para visibilidad en pantallas pequeñas */
+        font-size: 3px; /* Ajusta el tamaño de la fuente para visibilidad en pantallas pequeñas */
         margin: 0 60px; /* Agrega márgenes laterales para no tocar los bordes de la pantalla */
         margin-top: -140px;
         
@@ -324,7 +350,7 @@ margin-left: 0px; /* Ajusta el margen izquierdo para centrar */
     transform: translate(-50%, -50%); /* Ajusta el desplazamiento para que el centro del elemento sea el punto de referencia */
     z-index: 1500; /* Asegúrate de que esté sobre otros elementos si necesario */
     text-align: center;
-    font-size: 11px; /* Ajusta según necesidad para diferentes tamaños de pantalla con media queries si es necesario */
+    font-size: 4px; /* Ajusta según necesidad para diferentes tamaños de pantalla con media queries si es necesario */
     width: auto; /* Ancho auto para ajustar al contenido */
     height: auto; /* Altura auto para ajustar al contenido */
     top: 980px;
@@ -364,7 +390,7 @@ footer {
     transform: translate(-50%, -50%); /* Ajusta el desplazamiento para que el centro del elemento sea el punto de referencia */
     z-index: 1500; /* Asegúrate de que esté sobre otros elementos si necesario */
     text-align: center;
-    font-size: 5px; /* Ajusta según necesidad para diferentes tamaños de pantalla con media queries si es necesario */
+    font-size: 3px; /* Ajusta según necesidad para diferentes tamaños de pantalla con media queries si es necesario */
     width: auto; /* Ancho auto para ajustar al contenido */
     height: auto; /* Altura auto para ajustar al contenido */
     top: -280px;
@@ -421,13 +447,544 @@ footer {
     z-index: 20000;
 }
 
-@keyframes glow {
-    0% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3); }
-    50% { text-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.8); }
-    100% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3); }
-}
-
+/* Agregar al CSS */
 .glow {
-    animation: glow 1s infinite;
+    animation: glow 0.5s infinite; /* Más rápido */
 }
 
+@keyframes glow {
+    0% { 
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 
+                     0 0 10px rgba(255, 255, 255, 0.3),
+                     0 0 15px rgba(255, 0, 0, 0.5); /* Rojo agregado */
+    }
+    50% { 
+        text-shadow: 0 0 20px rgba(255, 255, 255, 1), 
+                     0 0 30px rgba(255, 255, 255, 0.8),
+                     0 0 40px rgba(255, 0, 0, 0.8); /* Rojo más intenso */
+    }
+    100% { 
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 
+                     0 0 10px rgba(255, 255, 255, 0.3),
+                     0 0 15px rgba(255, 0, 0, 0.5);
+    }
+}
+
+/* Efecto de glitch para el personaje */
+#ascii-art.glitch {
+animation: textGlitch 0.04s infinite;}
+
+@keyframes textGlitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+
+.glax span {
+    font-family: "Courier New", monospace;
+    font-size: 13px;      /* tamaño de “píxel” */
+    line-height: 2px;    /* que no queden huecos verticales */
+    color: #2cac6c;      /* gris general */
+    white-space: pre;    /* respeta espacios y saltos */
+  }
+   /* Asegura que los span también usen el mismo tamaño */
+  .glax span {
+    font-size: 6px;
+  }
+  
+  #img{
+
+z-index: 1000000;
+  }
+
+  /* ================== PORTAL GLITCH ================== */
+/* ================= PORTAL GLITCH ================= */
+
+#portal-glitch-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999999;
+    opacity: 0;
+    transform: scaleY(0.2);
+    transform-origin: center center;
+    transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+}
+
+
+/* Cuando está activo: se abre la grieta */
+#portal-glitch-overlay.active {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
+/* Dos mitades que distorsionan cada lado de la pantalla */
+.portal-slice {
+    position: absolute;
+    top: -5vh;
+    bottom: -5vh;
+    width: 52vw;
+    background: rgba(0, 0, 0, 0);
+    backdrop-filter: contrast(220%) saturate(2.2) hue-rotate(70deg) blur(3px);
+}
+
+/* Lado izquierdo: se desplaza y deforma hacia la izquierda */
+.left-slice {
+    left: -4vw;
+    animation: portalShiftLeft 120ms steps(2, end) infinite;
+}
+
+/* Lado derecho: se desplaza y deforma hacia la derecha */
+.right-slice {
+    right: -4vw;
+    animation: portalShiftRight 120ms steps(2, end) infinite;
+}
+
+/* Núcleo del portal: crack plateado/tornasolado */
+.portal-core {
+    position: absolute;
+    top: -10vh;
+    bottom: -10vh;
+    left: 50%;
+    width: 12vw;
+    transform: translateX(-50%);
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.95) 0px,
+            rgba(195, 230, 255, 0.8) 2px,
+            rgba(150, 200, 255, 0.5) 4px,
+            rgba(90, 140, 220, 0.3) 6px,
+            rgba(30, 40, 80, 0.0) 8px
+        );
+    opacity: 0.98;
+    mix-blend-mode: screen;
+    box-shadow:
+        0 0 35px rgba(190, 240, 255, 1),
+        0 0 90px rgba(120, 210, 255, 0.9),
+        0 0 210px rgba(120, 210, 255, 0.7);
+    clip-path: polygon(
+        50% 0%,
+        85% 8%,
+        100% 20%,
+        80% 40%,
+        100% 60%,
+        85% 75%,
+        60% 100%,
+        40% 100%,
+        15% 75%,
+        0% 60%,
+        20% 40%,
+        0% 20%,
+        15% 8%
+    );
+    animation: portalCoreFlicker 90ms steps(2, end) infinite;
+}
+
+/* El cuerpo completo tiembla / se distorsiona mientras el portal está activo */
+.body-glitch {
+    animation: bodyGlitchShake 80ms steps(2, end) 6;
+}
+
+/* Pequeño temblor + cambio de color general */
+@keyframes bodyGlitchShake {
+    0%   { transform: translate(0, 0); filter: none; }
+    20%  { transform: translate(-4px, 0); filter: hue-rotate(20deg) contrast(1.4); }
+    40%  { transform: translate(4px, -2px); filter: hue-rotate(-25deg) contrast(1.6) saturate(1.7); }
+    60%  { transform: translate(-3px, 2px); filter: hue-rotate(40deg) contrast(1.5); }
+    80%  { transform: translate(2px, -1px); filter: hue-rotate(-40deg) contrast(1.3); }
+    100% { transform: translate(0, 0); filter: none; }
+}
+
+/* Desplazamiento brusco del lado izquierdo */
+@keyframes portalShiftLeft {
+    0%   { transform: translateX(0) skewX(0deg); }
+    50%  { transform: translateX(-10px) skewX(-4deg); }
+    100% { transform: translateX(3px) skewX(2deg); }
+}
+
+/* Desplazamiento brusco del lado derecho */
+@keyframes portalShiftRight {
+    0%   { transform: translateX(0) skewX(0deg); }
+    50%  { transform: translateX(10px) skewX(4deg); }
+    100% { transform: translateX(-3px) skewX(-2deg); }
+}
+
+/* Flicker tornasolado del núcleo */
+@keyframes portalCoreFlicker {
+    0% {
+        opacity: 1;
+        filter: hue-rotate(0deg);
+    }
+    50% {
+        opacity: 0.7;
+        filter: hue-rotate(110deg) saturate(1.8);
+    }
+    100% {
+        opacity: 1;
+        filter: hue-rotate(220deg) saturate(2.2);
+    }
+}
+
+#ascii-art .zapatos {
+  color: red !important;
+  text-shadow: 0 0 4px red;
+}
+
+
+/* Que todo el contenido visual se adapte al ancho de la ventana */
+canvas,
+#p5-canvas,
+#tree-sketch-container,
+#color-bar-sketch-container,
+#ascii-container,
+#rain-sketch-container {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Evitar que cosas posicionadas con márgenes enormes se salgan demasiado */
+#tree-sketch-container {
+    height: auto;
+    max-width: 900px;
+}
+
+#color-bar-sketch-container {
+    max-width: 260px;
+    width: 60vw;
+    height: auto;
+}
+
+/* ASCII principal más flexible */
+#ascii-art {
+    max-width: 100%;
+    white-space: pre;
+    font-size: min(3px, 1vw);  /* Se ajusta un poco al ancho de pantalla */
+}
+#wooden-box {
+    position: absolute;
+    left: 150px;
+    top: 500px;
+    font-family: monospace;
+    font-size: 4px;
+    line-height: 5px;
+    white-space: pre;
+    display: none;
+    z-index: 10000;
+    color: #ff9c2b;
+    background-color: transparent !important; /* SIN FONDO */
+    padding: 0 !important; /* SIN PADDING */
+    border: none !important; /* SIN BORDE */
+    border-radius: 0 !important; /* SIN BORDES REDONDEADOS */
+    box-shadow: none !important; /* SIN SOMBRA */
+    min-width: auto !important;
+    min-height: auto !important;
+}
+
+#ascii-art.trapped {
+    font-size: 3px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+
+
+
+/* Efecto de glitch para el personaje */
+#ascii-art.glitch {
+    animation: textGlitch 0.1s infinite;
+}
+
+@keyframes textGlitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+
+/* CONTENEDOR PARA LA IMAGEN CON AURA */
+.portal-container {
+    position: absolute;
+    z-index: 1300000;
+    right: 40%;
+    margin-top: -360px;
+    width: 15%;
+    height: auto;
+    filter: url(#aura-glow); /* Filtro SVG para el aura */
+}
+
+#portal-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    
+    /* AURA BASE - se aplica via SVG filter */
+    filter: drop-shadow(0 0 10px rgba(255, 255, 0, 0.8))
+            drop-shadow(0 0 20px rgba(255, 200, 0, 0.6))
+            drop-shadow(0 0 30px rgba(255, 100, 0, 0.4))
+            drop-shadow(0 0 40px rgba(255, 0, 0, 0.3));
+    
+    /* ANIMACIÓN DE PULSO */
+    animation: silhouettePulse 3s infinite alternate;
+}
+
+@keyframes silhouettePulse {
+    0% {
+        filter: drop-shadow(0 0 8px rgba(255, 255, 0, 0.7))
+                drop-shadow(0 0 15px rgba(255, 200, 0, 0.5))
+                drop-shadow(0 0 25px rgba(255, 100, 0, 0.3))
+                drop-shadow(0 0 35px rgba(255, 0, 0, 0.2));
+    }
+    100% {
+        filter: drop-shadow(0 0 15px rgba(255, 255, 0, 0.9))
+                drop-shadow(0 0 30px rgba(255, 200, 0, 0.7))
+                drop-shadow(0 0 45px rgba(255, 100, 0, 0.5))
+                drop-shadow(0 0 60px rgba(255, 0, 0, 0.4));
+    }
+}
+
+
+/* GLITCH RÁPIDO DEL PERSONAJE PRINCIPAL */
+#ascii-art.glitch {
+    animation: glitchPulse 0.05s infinite; /* MUY rápido */
+}
+
+@keyframes glitchPulse {
+    0% {
+        opacity: 0.8;
+        filter: hue-rotate(0deg) contrast(120%) brightness(1.2);
+        transform: translateX(0px);
+    }
+    20% {
+        opacity: 1;
+        filter: hue-rotate(30deg) contrast(150%) brightness(1.4);
+        transform: translateX(2px);
+    }
+    40% {
+        opacity: 0.6;
+        filter: hue-rotate(-20deg) contrast(130%) brightness(1.1);
+        transform: translateX(-3px);
+    }
+    60% {
+        opacity: 0.9;
+        filter: hue-rotate(40deg) contrast(160%) brightness(1.3);
+        transform: translateX(1px);
+    }
+    80% {
+        opacity: 0.7;
+        filter: hue-rotate(-30deg) contrast(140%) brightness(1.0);
+        transform: translateX(-2px);
+    }
+    100% {
+        opacity: 0.8;
+        filter: hue-rotate(0deg) contrast(120%) brightness(1.2);
+        transform: translateX(0px);
+    }
+}
+
+
+/* Asegurar que las nubes estén por encima */
+#tree-sketch-container {
+    z-index: 2 !important;
+    position: relative;
+  
+}
+
+#ascii-mountain {
+    font-size: 6px;
+  cursor: pointer;
+  position: relative;
+  z-index: 3000;
+}
+
+#ascii-mountain:hover {
+  filter: brightness(1.2);
+
+}#ascii-cat {
+    position: relative;
+    z-index: 1000000000000 !important;
+}
+
+/* VERSIÓN MINIMALISTA */
+#start-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.326);
+    z-index: 100000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.start-minimal {
+    background: #001affda;
+    border: 1px solid #000000;
+    padding: 20px;
+    text-align: center;
+    color: #d9ff00;
+    text-shadow: 0 0 10px rgb(255, 255, 255);
+}
+
+.start-minimal h2 {
+    margin-bottom: 20px;
+    font-size: 11px;
+}
+
+.start-minimal p {
+    margin: 7px 0;
+    color: #40ff00;
+        text-shadow: 10 10 10px rgb(15, 255, 227);
+         font-size: 12px;
+
+}
+
+
+
+.help-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 100000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    /* ESTA LÍNEA ES IMPORTANTE: */
+    pointer-events: all;
+}
+
+.help-content {
+    background: #0a0a0a;
+    border: 2px solid #2cac6c;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 500px;
+    color: #e6e6e6;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(44, 172, 108, 0.5);
+    /* EL CONTENIDO SÍ DEBE SER CLICKEABLE: */
+    pointer-events: auto;
+}
+
+
+.start-minimal {
+    background: #001aff;
+    border: 1px solid #000000;
+    padding: 20px;
+    text-align: center;
+    color: #d9ff00;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+    font-family: 'Courier New', Courier, monospace;
+
+    position: relative;
+    overflow: hidden; /* recorta la estela */
+}
+
+.start-minimal::before {
+    content: "";
+    position: absolute;
+    top: -30%;
+    left: -50%;
+    width: 200%;
+    height: 160%;
+
+    background: linear-gradient(
+        115deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(255, 255, 255, 0.0) 35%,
+        rgba(255, 255, 255, 0.605) 50%,
+        rgba(255, 255, 255, 0.0) 65%,
+        rgba(0, 0, 0, 0) 100%
+    );
+
+    filter: blur(6px);
+    opacity: 0.7;
+    mix-blend-mode: screen;
+    pointer-events: none;
+
+    /* posición inicial */
+    transform: translate3d(-60%, 0, 0) rotate(18deg);
+    /* movimiento constante, siempre hacia la derecha */
+    animation: glow-sweep 4.5s linear infinite;
+}
+
+/* SIEMPRE HACIA ADELANTE */
+@keyframes glow-sweep {
+    0% {
+        transform: translate3d(-60%, 0, 0) rotate(18deg);
+        opacity: 0.4;
+    }
+    100% {
+        transform: translate3d(80%, 0, 0) rotate(18deg);
+        opacity: 0.8;
+    }
+}
+
+/* Borde suave tipo vidrio */
+.start-minimal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    border: 1px solid rgba(180, 255, 220, 0.25);
+    box-shadow:
+        0 0 18px rgba(0, 0, 0, 0.7),
+        0 0 25px rgba(120, 255, 210, 0.35);
+    pointer-events: none;
+}
+
+/* Movimiento suave ida y vuelta */
+
+/* Tus textos se pueden quedar igual o suavizar un poco el glow */
+.start-minimal h2 {
+    margin-bottom: 20px;
+    font-size: 11px;
+}
+
+.start-minimal p {
+    margin: 7px 0;
+    color: #40ff00;
+    text-shadow: 0 0 8px rgba(15, 255, 227, 0.9);
+    font-size: 12px;
+}
+
+
+/* ===================== REVELADO VERTICAL INICIAL ===================== */
+
+#reveal-mask {
+    position: fixed;
+    inset: 0;                  /* top:0; right:0; bottom:0; left:0 */
+    background: #000000;       /* pantalla completamente negra */
+    z-index: 999999999;        /* por encima de todo */
+    pointer-events: none;      /* no bloquea clicks, solo tapa visualmente */
+    animation: revealDown 13.0s ease-out forwards;  /* velocidad del “pintado” */
+}
+
+/* Animación: la capa negra se desliza hacia abajo y deja ver la página */
+@keyframes revealDown {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(100%);
+    }
+}
