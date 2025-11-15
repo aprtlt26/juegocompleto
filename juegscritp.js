@@ -1,5 +1,3 @@
-  
- 
     
   
   
@@ -570,10 +568,10 @@ const asciiTargetChars = [
 
 // caracteres en modo glitch (aquí metemos los “trucos” con espacios)
 const asciiCharsGlitch = [
-  '@ ',  '#  ', '▒ ', '▓  ', '▒   ', '░ ', '█  ', '▓   ',
-  'a ', 'b  ', 'c   ', 'd ', 'e  ', 'f   ', 'g ', 'h  ',
-  'i   ', 'j ', 'k  ', 'l   ', 'm ', 'n  ', 'ñ   ', 'o ',
-  'p  ', 'q   '
+  '@',  '#', '▒ ', '▓', '▒', '░', '█', '▓',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i','j','k', 'l', 'm', 'n', 'ñ','o',
+  'p', 'q'
 ];
 
 
@@ -2092,5 +2090,6 @@ function resetGame() {
     
     console.log("JUEGO REINICIADO - Personaje liberado");
 }
+
 
 
