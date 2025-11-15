@@ -2,7 +2,6 @@
   
   
   
-  
   function startAudioContext() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -524,19 +523,28 @@ document.body.addEventListener('click', function() {
     }, 20); // Cambia los caracteres cada 20 milisegundos
   }
 });
-
 function shuffleAscii(element) {
   if (!element) return;
 
-  // Elegimos el set según el modo
-  const characters = glitchMode ? asciiCharsGlitch : asciiCharsNormal;
+  // Guardamos el ASCII original solo la primera vez
+  if (!element.dataset.baseText) {
+    element.dataset.baseText = element.innerText;
+  }
 
+  // Si el glitch está apagado, volvemos al estado original y salimos
+  if (!glitchMode) {
+    element.innerText = element.dataset.baseText;
+    return;
+  }
+
+  // Si el glitch está encendido, partimos SIEMPRE del texto original
+  const source = element.dataset.baseText;
   let newText = '';
 
-  for (let char of element.innerText) {
+  for (let char of source) {
     if (asciiTargetChars.includes(char)) {
-      const randomChar = characters[Math.floor(Math.random() * characters.length)];
-      newText += randomChar;   // aquí a veces serán strings con espacios
+      const randomChar = asciiCharsGlitch[Math.floor(Math.random() * asciiCharsGlitch.length)];
+      newText += randomChar;
     } else {
       newText += char;
     }
@@ -546,36 +554,24 @@ function shuffleAscii(element) {
 }
 
 
-// ===== MODOS DE CARACTERES PARA EL ASCII =====
+
 let glitchMode = false;  // false = normal, true = glitch
 
-// caracteres base (todo de 1 solo carácter)
-const asciiCharsNormal = [
-  '@', '#', '▒', '▓', '▒', '░', '█', '▓',
-  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
-  'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o',
-  'p', 'q'
-];
-
-// mismos caracteres “objetivo” sobre el texto original
-// (solo 1 carácter cada uno, para que el includes funcione bien)
+// caracteres del ASCII original que quieres afectar
 const asciiTargetChars = [
   '@', '#', '▒', '▓', '▒', '░', '█', '▓',
   'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
   'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o',
   'p', 'q'
 ];
-
 // caracteres en modo glitch (aquí metemos los “trucos” con espacios)
 const asciiCharsGlitch = [
-  '@',  '#', '▒ ', '▓', '▒', '░', '█', '▓',
-  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
-  'i','j','k', 'l', 'm', 'n', 'ñ','o',
-  'p', 'q'
+  '@ ',  '#  ', '▒ ', '▓  ', '▒   ', '░ ', '█  ', '▓   ',
+  'a ', 'b  ', 'c   ', 'd ', 'e  ', 'f   ', 'g ', 'h  ',
+  'i   ', 'j ', 'k ', 'l   ', 'm ', 'n  ', 'ñ   ', 'o ',
+  'p  ', 'q   '
 ];
 
-
-// Tecla G para activar / desactivar GLITCH ASCII
 document.addEventListener('keydown', (event) => {
   if (event.key === 'g' || event.key === 'G') {
     glitchMode = !glitchMode;
