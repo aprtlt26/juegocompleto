@@ -95,6 +95,25 @@ section p {
    
 
 }
+
+
+
+    
+#ascii-cat2{
+    display: flex;
+    white-space:pre-wrap;
+    word-wrap: break-word; 
+    font-size: 6px;
+    cursor: pointer;
+    margin: 20px;
+                width: 100%; /* Ocupa el ancho completo de la pantalla */
+
+    padding-top: 290px;
+    z-index: 9999933000;
+ 
+   
+
+}
     #ascii-container {
     
 display: flex;    
@@ -222,6 +241,17 @@ margin-left: 80px; /* Centra horizontalmente */
             margin-top: 70px;
         }
 
+
+        #ascii-cat2 {
+            position: absolute; /* Posicionamiento absoluto para mejor control */
+            left: 0%;
+            right: 0;     /* Alinea al centro horizontalmente */
+            width: 100%; /* Ocupa el ancho completo de la pantalla */
+            font-size: 3px; /* Ajusta el tamaño de la fuente si es necesario */
+            z-index: 100;
+            margin:10px;
+            margin-top: 70px;
+        }
      
 
     #ascii-art  {
@@ -1015,3 +1045,4 @@ canvas,
     color: #40ff00;
     font-weight: bold;
 }
+
