@@ -1,5 +1,7 @@
   
   
+    
+  
   
   
   
@@ -137,11 +139,11 @@ document.getElementById('ascii-cat').addEventListener('click', function(event) {
 // ====== DEBUG EN CONSOLA ======
 function debugEstado() {
     console.log("🎵 SONIDOS - Sol:", solActivo, "Luna:", lunaActiva, "Ruido:", ruidoBlancoActivo);
-    console.log("🔒 ESTADO - Trapped:", trapped, "Movimiento:", enableMovementAndJump);
+    console.log(" ESTADO - Trapped:", trapped, "Movimiento:", enableMovementAndJump);
     
     const box = document.getElementById('wooden-box');
     const asciiArt = document.getElementById('ascii-art');
-    console.log("📦 ELEMENTOS - Caja visible:", box?.style.display, "Personaje visible:", asciiArt?.style.display);
+    console.log(" ELEMENTOS - Caja visible:", box?.style.display, "Personaje visible:", asciiArt?.style.display);
 }
 
 // Ejecutar debug cada 2 segundos
@@ -158,7 +160,7 @@ document.addEventListener('keydown', function(event) {
             generarRuidoBlanco();
             ruidoBlancoActivo = true;
 
-            // 🔥 activar glitch (lo mismo que hacías con la tecla G)
+        
             glitchMode = true;
         } else {
             if (whiteNoiseSource) {
@@ -206,8 +208,8 @@ function verificarLiberacion() {
     }
 }
 
-// ====== VERIFICACIÓN CADA 10ms ======
-setInterval(verificarLiberacion, 10);
+// ====== VERIFICACIÓN CADA 80ms ======
+setInterval(verificarLiberacion, 80);
 
 
 
@@ -374,62 +376,64 @@ gainNode.gain.value = gainValue;
 
 
 let osciladoresActivos = [];
+// 🔹 Canvas del ASCII (sol / luna / caracteres)
+let asciiCanvas;
+let prevMouseX = 0;
+let prevMouseY = 0;
+let mouseMoving = false;
 
+function setup() {
+  const asciiArtContainer = document.getElementById('ascii-container');
+  const desiredHeight = 600;
 
-  let prevMouseX = 0;
-  let prevMouseY = 0;
-  let mouseMoving = false;
   
-  function setup() {
-      let asciiArtContainer = document.getElementById('ascii-container'); 
-      let desiredHeight = 400; // Establecer el largo deseado aquí
-      let canvas = createCanvas(asciiArtContainer.offsetWidth, desiredHeight);
+  asciiCanvas = createCanvas(asciiArtContainer.offsetWidth, desiredHeight);
+
+  // Posición exacta encima del contenedor
+  asciiCanvas.position(asciiArtContainer.offsetLeft, asciiArtContainer.offsetTop);
 
 
-   canvas.position(asciiArtContainer.offsetLeft, asciiArtContainer.offsetTop);
-   textSize(22);
-      fill(255);
-      noStroke();
-background(0); 
+
+  // dentro del setup() de soundLetters
+const cnv = p.createCanvas(container.offsetWidth, desiredHeight);
+cnv.position(container.offsetLeft, container.offsetTop);
+cnv.style('z-index', '5200000');      // ⬅️ por encima del fondo seguro
+cnv.style('pointer-events', 'none');
+
+  textSize(22);
+  fill(255);
+  noStroke();
+  clear();        // limpia con transparencia (NO negro)
 }
-
 
 function windowResized() {
-let asciiArtContainer = document.getElementById('ascii-container');
-let desiredHeight = 400; // Asegúrate de usar el mismo largo deseado que antes
-resizeCanvas(asciiArtContainer.offsetWidth, desiredHeight);
-canvas.position(asciiArtContainer.offsetLeft, asciiArtContainer.offsetTop);
+  const asciiArtContainer = document.getElementById('ascii-container');
+  const desiredHeight = 400;
+
+  resizeCanvas(asciiArtContainer.offsetWidth, desiredHeight);
+  asciiCanvas.position(asciiArtContainer.offsetLeft, asciiArtContainer.offsetTop);
 }
 
+// 🔹 SIN background(0): nunca pintamos negro
+function draw() {
+  if (mouseX !== prevMouseX || mouseY !== prevMouseY) {
+    mouseMoving = true;
+    const char = generarCaracterAleatorio();
+    text(char, mouseX, mouseY);
 
-  function draw() {
-      // Verificar si el mouse se ha movido
-      if (mouseX !== prevMouseX || mouseY !== prevMouseY) {
-          mouseMoving = true;
-          // Generar y mostrar un carácter aleatorio en la posición del mouse
-          let char = generarCaracterAleatorio();
-          text(char, mouseX, mouseY);
-  
-          // Aquí iría el código para reproducir el sonido
-          // reproducirSonido();
-          
-          prevMouseX = mouseX;
-          prevMouseY = mouseY;
-      } else {
-          if (mouseMoving) {
-              // El mouse se detuvo; limpiar el canvas y detener el sonido
-              background(0);
-              // detenerSonido();
-              mouseMoving = false;
-          }
-      }
+    prevMouseX = mouseX;
+    prevMouseY = mouseY;
+  } else if (mouseMoving) {
+    // antes tenías background(0) → parche negro
+    clear();          // limpia a transparente
+    mouseMoving = false;
   }
-  
-  function generarCaracterAleatorio() {
-      // Generar un número aleatorio y convertirlo a un carácter ASCII
-      return String.fromCharCode(int(random(65, 1190))); // Letras mayúsculas A-Z
-  }
-  
+}
+
+function generarCaracterAleatorio() {
+  return String.fromCharCode(int(random(65, 1190)));
+}
+
   // Funciones para manejar el audio
   // Deberás reemplazar estas funciones con tu propia lógica de audio
   function reproducirSonido() {
@@ -539,7 +543,7 @@ document.body.addEventListener('click', function() {
         shuffleAscii(document.getElementById('text'));
      
 
-    }, 20); // Cambia los caracteres cada 20 milisegundos
+    }, 30); // Cambia los caracteres cada 20 milisegundos
   }
 });
 
@@ -703,10 +707,9 @@ if (!audioCtx) {
 }
 
 
-
-// Instancia de p5 para el árbol
+// Instancia de p5 para las nubes
 let sketch2 = function(p) {
-let asciiCat = `
+  let asciiCat = `
 
    
 ☁☁ ☁ 
@@ -714,36 +717,85 @@ let asciiCat = `
 
 `;
 
-p.setup = function() {
-p.createCanvas(710, 200);
-p.textSize(32);
-p.fill(255);
-x = p.random(p.width - 100); // Coordenada inicial x
-  y = p.random(p.height - 100); // Coordenada inicial y
+  p.setup = function() {
+    p.createCanvas(710, 200);
+    p.textSize(32);
+    p.fill(255);
+    // posición inicial aleatoria
+    x = p.random(p.width - 100);
+    y = p.random(p.height - 100);
+  };
+
+  p.draw = function() {
+    // ⬇⬇ ESTA ES LA LÍNEA IMPORTANTE
+    p.clear();              // antes: p.background(0);
+    // ⬆⬆ deja el canvas TRANSPARENTE, sin parche negro
+
+    // Dibuja el ASCII
+    let x = p.random(p.width - 100); 
+    let y = p.random(p.height - 250);
+    p.text(asciiCat, x, y, x);
+  };
+
+  p.mouseClicked = function() {
+    p.clear();
+    p.draw(); // redibuja en nueva posición
+  };
 };
-
-
-p.draw = function() {
-p.background(0);
-
-let x = p.random(p.width - 100); // Asegura espacio para el gato
-let y = p.random(p.height - 250); // Asegura espacio para el gato
-
-// Dibuja el gato en el canvas en la posición aleatoria
-p.text(asciiCat, x, y,x);
-
-};
-
-p.mouseClicked = function() {
-p.clear(); // Limpia el canvas
-p.draw(); // Dibuja un nuevo gato
-};
-};
-
-
-
 
 new p5(sketch2, 'tree-sketch-container');
+
+// ================== SKETCH DE LETRAS SONORAS ==================
+let soundLetters = function(p) {
+  let prevX = 0;
+  let prevY = 0;
+  let moving = false;
+
+    p.setup = function() {
+    const container = document.getElementById('ascii-container');
+    const desiredHeight = 400;
+    const cnv = p.createCanvas(container.offsetWidth, desiredHeight);
+
+    // posición exacta del contenedor
+    cnv.position(container.offsetLeft, container.offsetTop);
+
+    // estilo: transparente y MUY por encima de la lluvia
+    cnv.style('background', 'transparent');
+    cnv.style('z-index', '33000');   // 👈 MÁS ALTO QUE LA LLUVIA
+    cnv.style('pointer-events', 'none');
+
+    p.textSize(22);
+    p.fill(255);
+    p.noStroke();
+    p.clear();
+  };
+
+
+  p.windowResized = function() {
+    const container = document.getElementById('ascii-container');
+    const desiredHeight = 400;
+    p.resizeCanvas(container.offsetWidth, desiredHeight);
+  };
+
+  p.draw = function() {
+    if (p.mouseX !== prevX || p.mouseY !== prevY) {
+      moving = true;
+      const char = String.fromCharCode(p.int(p.random(65, 1190)));
+      p.text(char, p.mouseX, p.mouseY);
+      prevX = p.mouseX;
+      prevY = p.mouseY;
+    } else if (moving) {
+      p.clear(); // limpio, transparente
+      moving = false;
+    }
+  };
+};
+
+new p5(soundLetters, 'ascii-container');
+
+
+
+
 document.addEventListener('keydown', function(event) {
     // asegura audio inicializado
     if (!audioCtx) {
@@ -892,11 +944,13 @@ let rainSketch = function(p) {
     let lightnings = [];
     let nextStrike = 0; // cuándo cae el próximo rayo (en ms)
 
-    p.setup = function() {
-        p.createCanvas(p.windowWidth, p.windowHeight);
-        p.frameRate(30);
-        nextStrike = p.millis() + p.random(1000, 2000);
-    };
+
+p.setup = function() {
+    p.createCanvas(p.windowWidth, p.windowHeight);
+    p.frameRate(26); // 🔹 menos FPS → menos CPU
+    nextStrike = p.millis() + p.random(1000, 2000);
+};
+
 
 p.draw = function() {
     p.clear();
@@ -910,16 +964,18 @@ p.draw = function() {
         }
     }
 
-    // Más gotas de lluvia
-    if (p.frameCount % 1 === 0) {
-        raindrops.push(new Raindrop(p));
-    }
+// 🔹 Máximo de gotas + spawn rápido pero controlado
+if (raindrops.length < 13 && p.frameCount % 2 === 0) {
+    raindrops.push(new Raindrop(p));
+}
+
+
 
     // ================= RAYOS - DESACTIVAR DURANTE GLITCH =================
     let now = p.millis();
 
     if (!window.portalBreak && now > nextStrike) {
-        const simultaneousLightnings = Math.floor(p.random(2, 6));
+const simultaneousLightnings = Math.floor(p.random(1, 2)); // muchos menos
         
         for (let i = 0; i < simultaneousLightnings; i++) {
             lightnings.push(new Lightning(p));
@@ -928,6 +984,7 @@ p.draw = function() {
         nextStrike = now + p.random(1000, 3000);
     }
 
+    
     let flashStrength = 0;
     if (!window.portalBreak) {
         for (let i = lightnings.length - 1; i >= 0; i--) {
@@ -937,21 +994,32 @@ p.draw = function() {
 
             if (!L.isDead()) {
                 let s = L.flashStrength();
-                flashStrength += s * 0.2;
+                flashStrength += s * 0.9;   // mantenemos el peso
             } else {
                 lightnings.splice(i, 1);
             }
         }
 
-        if (flashStrength > 0) {
-            p.push();
-            p.noStroke();
-            const intensity = p.min(flashStrength, 3.0);
-            p.fill(255, 244, 200, 180 * intensity);
-            p.rect(0, 0, p.width, p.height);
-            p.pop();
-        }
+        // 🔥 FLASH MUY RÁPIDO PERO BIEN VISIBLE
+     // 🔥 FLASH MÁS CORTO Y MÁS SUAVE
+    if (flashStrength > 0.15) {          // solo flashea cuando es fuerte
+        p.push();
+        p.noStroke();
+
+        // intensidad moderada y recortada
+        const intensity = p.min(flashStrength * 0.2, 0.6);
+
+        // menos alpha → no quema tanto
+        const alpha = 130 * intensity;   // antes 220
+        p.fill(255, 252, 255, alpha);
+        p.rect(0, 0, p.width, p.height);
+
+        p.pop();
     }
+
+    }
+
+
 
     // ================= PORTAL GLITCH - MUY RÁPIDO =================
     if (window.portalBreak) {
@@ -1060,7 +1128,7 @@ p.draw = function() {
 
         // ================= 3) BLOQUES DE RUIDO MUY RÁPIDOS =================
         p.push();
-        let blocks = 130; // MÁS BLOQUES
+        let blocks = 40; // MÁS BLOQUES
         for (let i = 0; i < blocks; i++) {
             // 90% DE PROBABILIDAD - CASI SIEMPRE VISIBLES
             if (p.random() > 0.1) {
@@ -1188,141 +1256,165 @@ p.draw = function() {
 }
 
     // ================= CLASE GOTA =================
-    class Raindrop {
-        constructor(p) {
-            this.p = p;
-            this.x = p.random(p.width);
-            this.y = 0;
-            this.z = p.random(0, 666);
-            this.len = p.map(this.z, 0, 20, 10, 20);
-            this.yspeed = p.map(this.z, 0, 20, 4, 10);
-        }
+   // ================= CLASE GOTA =================
+class Raindrop {
+    constructor(p) {
+        this.p = p;
+        this.x = p.random(p.width);
+        this.y = 0;
 
-        update() {
-            this.y += this.yspeed;
-            let grav = this.p.map(this.z, 0, 20, 0.01, 0.2);
-            this.yspeed += grav;
-        }
+        // profundidad
+        this.z = p.random(0, 666);
 
-        display() {
-            this.p.stroke(138, 83, 300);
-            this.p.line(this.x, this.y, this.x, this.y + this.len);
-        }
+        // largo casi igual
+        this.len = p.map(this.z, 0, 3, 7, 6);
 
-        isOffScreen() {
-            return this.y > this.p.height;
-        }
+        // 🔹 MÁS RÁPIDAS: antes 4–10
+        this.yspeed = p.map(this.z, 0, 20, 7 , 16);
     }
 
+    update() {
+        this.y += this.yspeed;
+
+        // 🔹 GRAVEDAD MÁS FUERTE: antes 0.01–0.2
+        let grav = this.p.map(this.z, 0, 60, 0.04, 0.35);
+        this.yspeed += grav;
+    }
+
+  display() {
+    // azul muy claro y luminoso
+    this.p.stroke(165, 220, 255, 260);  // (R,G,B,Alpha)
+    this.p.line(this.x, this.y, this.x, this.y + this.len);
+}
+
+
+    isOffScreen() {
+        return this.y > this.p.height;
+    }
+}
+
+
     // ================= CLASE RAYO =================
-    class Lightning {
-        constructor(p) {
-            this.p = p;
+   // ================= CLASE RAYO =================
+class Lightning {
+    constructor(p) {
+        this.p = p;
 
-            // camino principal del rayo: lista de puntos
-            this.mainPath = [];
+        // camino principal del rayo: lista de puntos
+        this.mainPath = [];
 
-            // punto inicial arriba
-            let x = p.random(p.width);
-            let y = 0;
+        // punto inicial arriba
+        let x = p.random(p.width);
+        let y = 0;
+        this.mainPath.push({ x, y });
+
+        // pasos cortos → rayo más suave y continuo
+        let steps = p.int(p.random(25, 33));
+        for (let i = 0; i < steps; i++) {
+            x += p.random(-18, 18);
+            y += p.random(14, 18);
             this.mainPath.push({ x, y });
+        }
 
-            // pasos cortos → rayo más suave y continuo
-            let steps = p.int(p.random(25, 30));
-            for (let i = 0; i < steps; i++) {
-                x += p.random(-18, 18);  
-                y += p.random(14, 18);   
-                this.mainPath.push({ x, y });
-            }
+        // ramitas secundarias
+        this.branches = [];
+        for (let i = 3; i < this.mainPath.length - 4; i++) {
+            if (p.random() < 0.22) {
+                let branch = [];
+                let bx = this.mainPath[i].x;
+                let by = this.mainPath[i].y;
+                branch.push({ x: bx, y: by });
 
-            // ramitas secundarias
-            this.branches = [];
-            for (let i = 3; i < this.mainPath.length - 4; i++) {
-                if (p.random() < 0.22) {
-                    let branch = [];
-                    let bx = this.mainPath[i].x;
-                    let by = this.mainPath[i].y;
+                let branchSteps = p.int(p.random(4, 7));
+                let dir = p.random() < 0.5 ? -1 : 1;
+
+                for (let k = 0; k < branchSteps; k++) {
+                    bx += p.random(10, 20) * dir;
+                    by += p.random(10, 20);
                     branch.push({ x: bx, y: by });
-
-                    let branchSteps = p.int(p.random(4, 7));
-                    let dir = p.random() < 0.5 ? -1 : 1;
-
-                    for (let k = 0; k < branchSteps; k++) {
-                        bx += p.random(10, 20) * dir;
-                        by += p.random(10, 20);
-                        branch.push({ x: bx, y: by });
-                    }
-                    this.branches.push(branch);
                 }
+                this.branches.push(branch);
             }
-
-            this.life = 0;
-            this.maxLife = p.int(p.random(15, 20));
         }
 
-        update() {
-            this.life++;
+        this.life = 0;
+
+        this.maxLife = p.int(p.random(8, 12)); 
+    }
+
+    update() {
+        // 🔹 ENVEJECEN EL DOBLE DE RÁPIDO
+        this.life += 1;
+    }
+
+    display() {
+        let t = this.life / this.maxLife; // 0 → 1
+        let baseAlpha = this.p.map(t, 0, 1, 255, 60); 
+
+        this.p.push();
+        this.p.strokeCap(this.p.ROUND);
+        this.p.strokeJoin(this.p.ROUND);
+        this.p.noFill();
+
+        let ctx = this.p.drawingContext;
+        ctx.save();
+        ctx.shadowBlur = 10 * (1 - t);
+        ctx.shadowColor = `rgba(235,235,255,${0.7 * (1 - t)})`;
+
+        // camino principal
+        this.p.stroke(230, 230, 240, baseAlpha);
+        this.p.strokeWeight(1.4);
+        this.p.beginShape();
+        for (let pt of this.mainPath) {
+            this.p.curveVertex(pt.x, pt.y);
         }
+        this.p.endShape();
 
-        display() {
-            let t = this.life / this.maxLife; // 0 → 1
-            let baseAlpha = this.p.map(t, 0, 1, 255, 80);
-
-            this.p.push();
-            this.p.strokeCap(this.p.ROUND);
-            this.p.strokeJoin(this.p.ROUND);
-            this.p.noFill();
-
-            let ctx = this.p.drawingContext;
-            ctx.save();
-            ctx.shadowBlur = 12 * (1 - t);
-            ctx.shadowColor = `rgba(235,235,255,${0.9 * (1 - t)})`;
-
-            // camino principal
-            this.p.stroke(230, 230, 240, baseAlpha);
-            this.p.strokeWeight(1.6);
+        // ramas
+        this.p.stroke(220, 220, 235, baseAlpha * 0.6);
+        this.p.strokeWeight(0.9);
+        for (let branch of this.branches) {
             this.p.beginShape();
-            for (let pt of this.mainPath) {
+            for (let pt of branch) {
                 this.p.curveVertex(pt.x, pt.y);
             }
             this.p.endShape();
-
-            // ramas
-            this.p.stroke(220, 220, 235, baseAlpha * 0.7);
-            this.p.strokeWeight(1.0);
-            for (let branch of this.branches) {
-                this.p.beginShape();
-                for (let pt of branch) {
-                    this.p.curveVertex(pt.x, pt.y);
-                }
-                this.p.endShape();
-            }
-
-            ctx.shadowBlur = 0;
-            ctx.restore();
-            this.p.pop();
         }
 
-        flashStrength() {
-            let t = this.life / this.maxLife;
-
-            if (t < 0.1) {
-                return this.p.map(t, 0.0, 0.2, 0.2, 1.0);
-            } else if (t < 0.35) {
-                return this.p.map(t, 0.2, 0.35, 1.0, 0.4);
-            } else if (t < 0.5) {
-                return this.p.map(t, 0.35, 0.5, 0.4, 0.9);
-            } else if (t < 0.8) {
-                return this.p.map(t, 0.5, 0.8, 0.9, 0.1);
-            } else {
-                return 0.0;
-            }
-        }
-
-        isDead() {
-            return this.life >= this.maxLife;
-        }
+        ctx.shadowBlur = 0;
+        ctx.restore();
+        this.p.pop();
     }
+
+  flashStrength() {
+    // 🔹 DOBLE PARPADEO: dos picos rápidos por rayo
+    let t = this.life / this.maxLife; // 0 → 1
+    let v = 0;
+
+    if (t < 0.15) {
+        // subida primer flash
+        v = this.p.map(t, 0.00, 0.05, 0.0, 1.0);
+    } else if (t < 0.25) {
+        // bajada primer flash
+        v = this.p.map(t, 0.05, 0.8, 1.0, 0.0);
+    } else if (t < 0.40) {
+        // subida segundo flash
+        v = this.p.map(t, 0.25, 0.32, 0.0, 1.0);
+    } else if (t < 0.50) {
+        // bajada segundo flash
+        v = this.p.map(t, 0.32, 0.40, 1.0, 0.0);
+    } else {
+        v = 0.0;
+    }
+
+    return v * 0.95; // intensidad global moderada
+}
+
+
+    isDead() {
+        return this.life >= this.maxLife;
+    }
+}
 
 
 new p5(rainSketch, 'rain-sketch-container');
@@ -1737,7 +1829,7 @@ function glitchAudioStart() {
                 oscilador.frequency.setValueAtTime(target, now);
             } catch (e) {}
         }
-    }, 10); // MUY RÁPIDO - 10ms
+    }, 30); // MUY RÁPIDO - 10ms
 }
 
 
@@ -1855,6 +1947,153 @@ function startGlitch() {
             trapCharacterInBox();
         }
     }, 8000); // 8s de glitch antes de caer en la caja (ajusta si quieres)
+}
+
+// sketch.js — fondo atmósfera ligera y barata
+let rays = [];
+const NUM_RAYS = 18;   // número de rayos
+
+// 🔹 capa offscreen para la niebla
+let fogLayer;
+const FOG_SCALE = 0.35;   // resolución más baja → más ligero
+const FOG_CELL  = 4;      // celdas más grandes → menos rectángulos
+
+let fogTime = 0;          // tiempo acumulado para animar la niebla
+
+function setup() {
+  const c = createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);        // ⚠️ mucho más barato que 2
+  frameRate(45);          // suficiente para fluidez visual
+
+  c.position(0, 0);
+  c.style('position', 'fixed');
+  c.style('top', '0');
+  c.style('left', '0');
+  c.style('z-index', '-40');         // bien al fondo
+  c.style('pointer-events', 'none');
+
+  // 🔹 buffer de niebla en menor resolución
+  fogLayer = createGraphics(width * FOG_SCALE, height * FOG_SCALE);
+  fogLayer.pixelDensity(1);
+
+  for (let i = 0; i < NUM_RAYS; i++) {
+    rays.push(new Ray(true));
+  }
+}
+
+function draw() {
+  // fondo negro sólido
+  noStroke();
+  fill(0, 0, 0, 255);
+  rect(0, 0, width, height);
+
+  // 🔹 avanzamos el tiempo suavemente según deltaTime
+  fogTime += deltaTime * 0.00055;   // si quieres más rápido, sube este valor
+
+  // recalculamos la niebla cada frame, pero con muy pocas celdas → sigue siendo barato
+  drawGreenFog();
+
+  // dibujamos el buffer escalado a pantalla completa
+  image(fogLayer, 0, 0, width, height);
+
+  // rayos por encima
+  for (let r of rays) {
+    r.update();
+    r.draw();
+  }
+}
+
+// 🔹 Niebla plateada, fluida, MÁS brillante y barata
+function drawGreenFog() {
+  fogLayer.noStroke();
+  fogLayer.clear();  // limpiamos el buffer, no la pantalla principal
+
+  const cell = FOG_CELL;
+
+  for (let x = 0; x < fogLayer.width; x += cell) {
+    for (let y = 0; y < fogLayer.height; y += cell) {
+
+      const n = noise(
+        (x / FOG_SCALE) * 0.02 + fogTime * 1.2,
+        (y / FOG_SCALE) * 0.02 + fogTime * 0.8
+      );
+
+      // curva de brillo más suave y luminosa
+      const brightRaw   = n * n;
+      const brightBoost = pow(brightRaw, 0.7);
+
+      // Base gris-plateada (más alta)
+      const base = 135 + 120 * brightBoost;
+
+      const r = base + 15  * brightBoost;
+      const g = base + 28  * brightBoost;
+      const b = base + 38  * brightBoost;
+
+      // más presencia luminosa pero sin tapar el negro
+      const alpha = 14 + 90 * brightBoost;
+
+      fogLayer.fill(r, g, b, alpha);
+      fogLayer.rect(x, y, cell, cell);
+    }
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+
+  // reajustar buffer cuando cambie el tamaño
+  fogLayer = createGraphics(width * FOG_SCALE, height * FOG_SCALE);
+  fogLayer.pixelDensity(1);
+}
+
+// =================== CLASE RAYO ===================
+class Ray {
+  constructor(fromTop) {
+    this.reset(fromTop);
+  }
+
+  reset(fromTop) {
+    this.depth = random(0.25, 1);
+
+    this.x = random(width);
+    this.baseX = this.x;
+    this.xNoiseSeed = random(1000, 5000);
+
+    this.y = fromTop ? random(-height, height) : random(-height, 0);
+
+    this.length = random(50, 140) * this.depth;
+    this.speed  = map(this.depth, 0.25, 1, 0.8, 2.4);
+
+    this.thick = map(this.depth, 0.25, 1, 0.1, 0.5);
+    this.alpha = map(this.depth, 0.25, 1, 8, 35);
+
+    this.segmentSize = random(4, 10);
+    this.gapSize     = random(4, 10);
+  }
+
+  update() {
+    this.y += this.speed;
+
+    let t = millis() * 0.0004;
+    let wobble = (noise(this.xNoiseSeed, t) - 0.5) * 1.2;
+    this.x = this.baseX + wobble;
+
+    if (this.y - this.length > height) {
+      this.reset(false);
+    }
+  }
+
+  draw() {
+    stroke(255, this.alpha);
+    strokeWeight(this.thick);
+
+    let y0 = this.y - this.length;
+    for (let y = y0; y < this.y; ) {
+      let seg = this.segmentSize;
+      line(this.x, y, this.x, y + seg);
+      y += seg + this.gapSize;
+    }
+  }
 }
 
 
@@ -2104,5 +2343,6 @@ function resetGame() {
     
     console.log("JUEGO REINICIADO - Personaje liberado");
 }
+
 
 
