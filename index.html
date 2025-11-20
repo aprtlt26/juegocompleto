@@ -18,12 +18,17 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
         <link rel="stylesheet" href="styletar.css">
 
+<!-- Asegúrate de tener esto en el HTML -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.2/p5.min.js"></script>
+
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
         <title>Le Mat World</title>
 <body>
+<button id="toggle-synth-panel">Sinte MIDI</button>
+
 
       <div id="reveal-mask"></div>
 <!-- VERSIÓN MINIMALISTA -->
@@ -32,7 +37,7 @@
 <div id="trap-alert" class="help-modal" style="display: none;">
     <div class="help-content">
         <div class="help-title">🚨 ¡HAS SIDO ATRAPADO! 🚨</div>
-        <p>El Daemon te ha encerrado en la caja dimensional.</p>
+        <p>El Daemon te ha encerrado en la caja.</p>
         <p>Para liberarte activa los 3 sonidos simultáneamente:</p>
         <ul class="help-list">
             <li>SOL (Tecla S ambient)</li>
@@ -66,47 +71,12 @@
       
     </div>
 </div>
-<script>
-
-let audioCtx;
-        
-        document.addEventListener('contextmenu', function(e) {
-          e.preventDefault();
-          alert('El clic derecho está desactivado en esta página.');
-        }, false);
-      
-       
-      
-      
-        document.addEventListener('DOMContentLoaded', (event) => {
-          verificarPermisoMicrofono();
-      });
-      
-      function verificarPermisoMicrofono() {
-          navigator.permissions.query({ name: 'audio' })
-              .then((permissionStatus) => {
-                  // 'prompt' significa que no se ha pedido el permiso todavía
-                  if (permissionStatus.state === 'prompt') {
-                      solicitarPermisoMicrofono();
-                  } else if (permissionStatus.state === 'granted') {
-                      alert("El permiso para el audio ha sido concedido.");
-                      // Ya puedes empezar a usar el micrófono
-                  } else {
-                      alert("El permiso para el audio ha sido denegado.");
-                      // Aquí puedes guiar al usuario sobre cómo cambiar los permisos del micrófono
-                  }
-              })
-              .catch((error) => {
-                  console.log('Error al verificar los permisos del audio:', error);
-              });
-      }
-</script>
 
 
 </head>
 <body>
 
-<div id="rain-sketch-container"></div>
+<div id="rain-sketch-container"  ></div>
 
 <body>
 
@@ -118,7 +88,7 @@ let audioCtx;
 </div>
 
 
-                  <div id="container" style="position: relative; width: 100%; height: 100%;  color: rgb(166, 198, 236);">
+                  <div id="container" style="position: relative; width: 100%; height: 100%;  background-color: #00000000; color: rgb(166, 198, 236);">
 
                        <pre id="ascii-luna">
                                                xxxxxxxx
@@ -163,7 +133,7 @@ let audioCtx;
 
 
 
-    <pre id="ascii-sol" style=" color: rgb(255, 249, 182);">
+    <pre id="ascii-sol" style="  background-color: #00000000; color: rgb(255, 249, 182);">
                                                                                                    
                                  *&&&% (#%.#%/(     @.%%(,&%*..../                                  
                                  (#/%%((%%.#%#*@    @.%%*#%%.%%%.@      @#                          
@@ -687,7 +657,12 @@ let audioCtx;
 
    Posterior a una toma de ayahuasca en Colombia en el año 2022 (la cuarta en mis 38 años de vida). En plena vigilia, con los ojos cerrados, me encontré consciente en un plano obscuro donde solo había un árbol y un ser con extremidades, forma y cara extraña que me habló... Le habló a mi mente, en forma telepática dijo: (Cada quien hace lo que quiere con su presa/pereza); la última palabra fue ambigua para mí hasta el día de hoy. En ese instante sentí verdadero miedo y desorientación; entonces el ser me encerró en una caja de madera con una tapa muy pesada. Solo pude salir siendo consciente de lo que estaba pasando; no era un sueño, sino una experiencia en vigilia, en otro plano dimensional. Entonces grité el nombre de mi hermana 3 veces y ahí salí; a pesar de mi temor, su mensaje fue muy claro, a pesar de mi doble interpretación de sus últimas sílabas. 
 
-  En ese momento de mi vida, me encontraba, atravesando un periodo de dolor intenso día tras día,  confrontado en mi propia oscuridad, me vi en los limites de la realidad literalmente. Después de dos años y medio de un indagar e investigar intensos sobre lo ocurrido de múltiples maneras, encontré respuestas inimaginables que cambiaron mi vida para siempre y por siempre.  
+Cabe aclarar que en ese momento de mi vida, me encontraba yo, atravesando el duelo más denso que he podido vivir hasta ahor confrontando aquel dolor día tras día me vi en los limites de la realidad literalmente. Después de dos años y medio de un indagar e investigar intensos sobre lo ocurrido de múltiples maneras, encontré respuestas inimaginables que cambiaron mi vida para siempre y por siempre.  Continaré narrando en el proximo escenario pues lo que ocurrió despues fue la trasnformación. </p>
+     </p>
+
+   
+
+  <p style=" font-size: 16x; color: #bababa; "> Diseño/Desarollo---Alfonso Pretelt 
    aprtlt® All rights reserved. https://alfonsopretelt.com/  </p>
 
 
@@ -695,10 +670,95 @@ let audioCtx;
  <script src="juegscritp.js"></script>
 
 
+  
+<div id="synth-panel">
+    <h3>SintheT MIDI </h3>
 
-    
+    <div class="row">
+        <label for="midi-waveform">Wave</label>
+        <select id="midi-waveform">
+            <option value="sawtooth" selected>Saw</option>
+            <option value="square">Square</option>
+            <option value="triangle">Tri</option>
+            <option value="sine">Sine</option>
+        </select>
+    </div>
+
+    <div class="row">
+        <label for="midi-gain">Gain</label>
+        <input type="range" id="midi-gain" min="0" max="1" step="0.01" value="1">
+    </div>
+
+    <div class="row">
+        <label for="filter-cutoff">Cutoff</label>
+        <input type="range" id="filter-cutoff" min="0" max="1" step="0.01" value="0.7">
+    </div>
+
+    <div class="row">
+        <label for="filter-resonance">Reso</label>
+        <input type="range" id="filter-resonance" min="0" max="1" step="0.01" value="0.3">
+    </div>
+
+    <div class="row">
+        <label for="midi-reverb">Reverb</label>
+        <input type="range" id="midi-reverb" min="0" max="1" step="0.01" value="0.25">
+    </div>
+
+    <div class="row">
+        <label for="midi-pitch">Transpose</label>
+        <input type="range" id="midi-pitch" min="-12" max="12" step="1" value="0">
+    </div>
+
+    <div class="row env">
+        <span>Env</span>
+        <label>A</label><input type="range" id="env-attack"  min="0.001" max="0.5" step="0.001" value="0.02">
+        <label>D</label><input type="range" id="env-decay"   min="0.01"  max="1"   step="0.01"  value="0.15">
+        <label>S</label><input type="range" id="env-sustain" min="0"     max="1"   step="0.01"  value="0.7">
+        <label>R</label><input type="range" id="env-release" min="0.01"  max="2"   step="0.01"  value="0.35">
+    </div>
+
+  <!-- ================== PANEL AUDIO MUNDO ASCII ================== -->
+<div id="world-audio-panel">
+  <h3>Mundo Arcano</h3>
+
+  <div class="row">
+    <label for="world-gain">World</label>
+    <input type="range" id="world-gain" min="0" max="1" step="0.01" value="1">
+  </div>
+
+  <div class="row">
+    <label for="noise-gain">Noise</label>
+    <input type="range" id="noise-gain" min="0" max="1" step="0.01" value="1">
+  </div>
+
+  <div class="row">
+    <label for="sun-gain">Sun</label>
+    <input type="range" id="sun-gain" min="0" max="1" step="0.01" value="1">
+  </div>
+
+  <div class="row">
+    <label for="sun-pitch">Sun Pitch</label>
+    <input type="range" id="sun-pitch" min="0.5" max="2" step="0.01" value="1">
+  </div>
+
+  <div class="row">
+    <label for="moon-gain">Moon</label>
+    <input type="range" id="moon-gain" min="0" max="1" step="0.01" value="1">
+  </div>
+
+  <div class="row">
+    <label for="moon-pitch">Moon Pitch</label>
+    <input type="range" id="moon-pitch" min="0.5" max="2" step="0.01" value="1">
+  </div>
+</div>
+<!-- ============================================================= -->
+
+</div>
+
 </body>
 </html>
+
+
 
 
 
