@@ -1,5 +1,5 @@
 body {
-    background-color: black;
+    background-color: rgb(0, 0, 0);
     color: #d5ed8cac;
             font-family: "Fira Code", "Courier New", monospace;
         font-size: 11px   ;
@@ -25,7 +25,9 @@ body {
   font-size: 6px;          /* ajusta para escalar el dibujo */
   margin: 0 auto 40px;     /* separación entre dibujos */
   display: block;
+  
 }
+
 
 
 section p {
@@ -75,6 +77,8 @@ section p {
     margin: auto;
   margin-top: 230px;
   margin-left: -400px;
+    background: transparent ;
+
   
  }
 
@@ -118,11 +122,11 @@ section p {
     
 display: flex;    
 height: auto; /* Asegúrate de que pueda expandirse para ajustarse al nuevo tamaño del canvas */
-    z-index: -90000000;
-margin-top: -120px;
+margin-top: -50px;
 margin-left: 80px; /* Centra horizontalmente */
     margin-right: auto;
-    top: 300px;
+    top: 100px;
+  z-index: 5000000000000000000;
 }
 
 
@@ -130,17 +134,19 @@ margin-left: 80px; /* Centra horizontalmente */
     position: relative;
     top: 0;
     left: 0;
-    z-index:  -10; /* Ajustar según sea necesario */
+    z-index:  10000000000; /* Ajustar según sea necesario */
     cursor: pointer;
    margin-left: 0px;
-   
+
+
+
 
 }
 
 #tree-sketch-container {
     display: flex;
     width: 800px; /* Ancho del canvas */
-    height: 650px; /* Altura del canvas */
+    height: 350px; /* Altura del canvas */
     position: relative;
     top: 0;
     left: 0;
@@ -148,6 +154,8 @@ margin-left: 80px; /* Centra horizontalmente */
     margin-left: 280px;
     z-index: 1000;
     padding-bottom: 500px;
+      background: transparent ;
+
 }
 
 
@@ -163,6 +171,9 @@ margin-left: 80px; /* Centra horizontalmente */
     width: 200px; /* Ancho fijo del contenedor */
     height: 200px;
     position: relative; /* Habilita el posicionamiento relativo */
+
+      background: transparent ;
+
 }
 
 
@@ -170,12 +181,13 @@ margin-left: 80px; /* Centra horizontalmente */
   position: absolute;
   
    
-     margin-top: -340px;
+     margin-top: 440px;
   left: 10px;
-  width: 80%;
-  height: 80%;
+  width: 100%; 
+  height: 50%;
+z-index: 10000000000000000000000;
+  background: transparent ;
 
-  
 }
 
 
@@ -184,9 +196,11 @@ margin-left: 80px; /* Centra horizontalmente */
     font-size: 2.5px;
     cursor: pointer;
     position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
-    top: 30;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
+    top: 130;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
     right: 0;           /* Alinea el lado derecho del elemento con el lado derecho del contenedor */
     margin-right:320px; /* Agrega un pequeño margen derecho, si es necesario */
+      background: transparent ;
+
     z-index: 2000;      /* Asegura que el elemento sea visible sobre otros posibles elementos */
 }
 
@@ -195,27 +209,32 @@ margin-left: 80px; /* Centra horizontalmente */
     z-index: 1000; 
     cursor: pointer;
     position: absolute; /* Posicionamiento absoluto dentro de su contenedor */
-    top: 30;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
+    top: 130;             /* Alinea la parte superior del elemento con la parte superior del contenedor */
     left: 0;
     margin-left:280px;  
     z-index: 2000;
+  background: transparent ;
+
 
 }
 
 #rain-sketch-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2000;
-            pointer-events: none; /* Permite hacer clic a través del contenedor */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width:130%;
+    height: 100%;
+    z-index: 1000;          /* 👈 por debajo del canvas de letras (3000) */
+    pointer-events: none;
+    background: transparent;
+}
 
-        } 
+
 
        /* Reglas de media query para dispositivos con ancho máximo de 600px */
 @media (max-width: 600px) {
     body {
+  background: transparent ;
 
         overflow: hidden;
         height: 100%;
@@ -228,6 +247,8 @@ margin-left: 80px; /* Centra horizontalmente */
             top: -200px;    /* Ajusta esta propiedad para subir o bajar el canvas */
             left: 0;      /* Alinea al centro horizontalmente */
             z-index: 5;   /* Asegura que esté debajo del ascii-cat si es necesario */
+              background: transparent ;
+
         }
 
         #ascii-cat {
@@ -387,6 +408,8 @@ margin-left: 0px; /* Ajusta el margen izquierdo para centrar */
     width: auto; /* Ancho auto para ajustar al contenido */
     height: auto; /* Altura auto para ajustar al contenido */
     top: 980px;
+      background: transparent ;
+
 }
 
 
@@ -478,6 +501,7 @@ footer {
     white-space: pre;
     font-family: monospace;
     z-index: 20000;
+    
 }
 
 /* Agregar al CSS */
@@ -681,6 +705,8 @@ canvas,
     box-sizing: border-box;
     margin-left: auto;
     margin-right: auto;
+      background: transparent ;
+   z-index: 1000;
 }
 
 /* Evitar que cosas posicionadas con márgenes enormes se salgan demasiado */
@@ -857,7 +883,7 @@ canvas,
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.326);
+    background: rgb(0, 0, 0);
     z-index: 100000;
     display: flex;
     justify-content: center;
@@ -1005,12 +1031,19 @@ canvas,
 
 #reveal-mask {
     position: fixed;
-    inset: 0;                  /* top:0; right:0; bottom:0; left:0 */
-    background: #000000;       /* pantalla completamente negra */
-    z-index: 999999999;        /* por encima de todo */
-    pointer-events: none;      /* no bloquea clicks, solo tapa visualmente */
-    animation: revealDown 13.0s ease-out forwards;  /* velocidad del “pintado” */
+    inset: 0;
+    background: #000000;
+    z-index: 999999999;
+    pointer-events: none;
+    display: none;          /* ⬅️ IMPORTANTE: oculta por defecto */
+    animation: none;        /* sin animación por defecto */
 }
+
+/* cuando se active desde JS */
+#reveal-mask.is-revealing {
+    animation: revealDown 7.0s ease-out forwards;
+}
+
 
 /* Animación: la capa negra se desliza hacia abajo y deja ver la página */
 @keyframes revealDown {
@@ -1028,7 +1061,7 @@ canvas,
 #trap-alert {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.88);
+    background: rgba(0, 0, 0, 0.977);
     display: none;               /* se enciende con JS: display:flex */
     align-items: center;
     justify-content: center;
@@ -1046,3 +1079,219 @@ canvas,
     font-weight: bold;
 }
 
+#synth-panel {
+    display:block;
+    top: 28%;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    background: rgba(0, 0, 0, 0);
+    border: 0px solid #fff8f8;
+    padding: 8px 10px;
+    font-family: monospace;
+    color: #eee;
+    font-size: 11px;
+    z-index: 500000000;
+    backdrop-filter: blur(4px);
+    margin-top: 20%;
+    margin:1% ;
+    
+    height: 37%;
+}
+
+  
+
+#synth-panel h3 {
+    margin: 0 0 5px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+#synth-panel .row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+#synth-panel label {
+    min-width: 55px;
+}
+
+#synth-panel input[type="range"] {
+    flex: 1;
+}
+
+#synth-panel .env {
+    flex-wrap: wrap;
+    gap: 2px 4px;
+}
+
+#synth-panel .env span {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-right: 4px;
+}
+
+#synth-panel .env label {
+    min-width: auto;
+    font-size: 10px;
+}
+
+#synth-panel .env input[type="range"] {
+    width: 60px;
+}
+
+
+/* Botón de toggle arriba a la derecha */
+#toggle-synth-panel {
+    position: fixed;
+    top: 6px;
+    right: 10px;
+    z-index: 500000001;
+    background: rgba(0, 0, 0, 0.8);
+    color: #15ff00;
+    border: 1px solid #666;
+    padding: 4px 8px;
+    font-family: monospace;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+#toggle-synth-panel:hover {
+    background: rgba(40, 40, 40, 0.95);
+}
+
+/* El título del panel se usa como “handle” para arrastrar */
+#synth-panel h3 {
+    cursor: move; /* añade solo esta línea a tu regla actual */
+}
+
+/* Quitar sombra / borde azul al enfocar links, botones, inputs, sliders, etc. */
+a:focus,
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Quitar también el highlight azul en Chrome/Android al tocar */
+a,
+button,
+input,
+textarea,
+select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Opcional: evitar selección azul de texto al hacer drag */
+::selection {
+    background: transparent;
+    color: inherit;
+}
+
+/* Prefijos extra por si acaso */
+::-moz-focus-inner {
+    border: 0;
+}
+/* BASE: quitamos estilo nativo y fondo raro */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    margin: 6px 0;
+    cursor: pointer;
+}
+
+/* ===== WEBKIT (Chrome, Edge, Safari) ===== */
+
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    background: #303030;
+    border-radius: 999px;
+    border: 1px solid #555;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -6px;              /* centra el thumb en el track */
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgb(185, 255, 44); /* verde neón */
+    border: 2px solid #000;
+    box-shadow: 0 0 10px rgba(185, 255, 44, 0.7);
+}
+
+/* Hover / activo para mejor feedback */
+input[type="range"]:hover::-webkit-slider-thumb {
+    box-shadow: 0 0 14px rgba(185, 255, 44, 1);
+}
+
+/* ===== FIREFOX ===== */
+
+input[type="range"]::-moz-range-track {
+    height: 6px;
+    background: #303030;
+    border-radius: 999px;
+    border: 1px solid #555;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgb(185, 255, 44);
+    border: 2px solid #000;
+    box-shadow: 0 0 10px rgba(185, 255, 44, 0.7);
+}
+
+/* ===== EDGE/IE ANTIGUO (por si acaso) ===== */
+
+input[type="range"]::-ms-track {
+    height: 6px;
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+}
+
+input[type="range"]::-ms-fill-lower,
+input[type="range"]::-ms-fill-upper {
+    background: #303030;
+    border-radius: 999px;
+    border: 1px solid #555;
+}
+
+input[type="range"]::-ms-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgb(185, 255, 44);
+    border: 2px solid #000;
+    box-shadow: 0 0 10px rgba(185, 255, 44, 0.7);
+}
+
+/* Por si algún navegador insiste con outline */
+input[type="range"]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+
+#sun-gain::-webkit-slider-thumb,
+#sun-pitch::-webkit-slider-thumb {
+    background: #ffcc33;
+    box-shadow: 0 0 10px rgba(255, 204, 51, 0.8);
+}
+
+#moon-gain::-webkit-slider-thumb,
+#moon-pitch::-webkit-slider-thumb {
+    background: #66ccff;
+    box-shadow: 0 0 10px rgba(102, 204, 255, 0.8);
+}
