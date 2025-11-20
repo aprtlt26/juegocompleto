@@ -1,21 +1,98 @@
-  
-  
-    
-  
-  
-  
-  
-  function startAudioContext() {
+// ====== AUDIO GLOBAL (MUNDO + OSCILADOR BASE) ======
+let audioCtx;
+let oscilador;
+let gainNode;
+let compressor;
+let delayNode;
+let delayGain;
+let lettersGain;  // ⬅️ ganancia solo para letras / árbol / mouse
+
+let reverbNode;
+
+let enableMovementAndJump = true;
+
+let whiteNoiseSource;
+let whiteNoiseGain;   // ⬅️ AHORA SÍ SE USA
+let shuffleInterval = null;
+let currentIntervalId = null;
+let currentIntervalSpeed = 4;
+let collisionCount = 0;
+
+// Ganancia base del mundo, controlada por el slider
+let worldGainBase = 0.1;
+
+// === CONTROL GLOBAL DEL AUDIO DEL MOUSE ===
+let mouseAudioEnabled = true;
+
+        
+      // === CONTROL GLOBAL DEL AUDIO DEL MOUSE ===
+
+
+    initMIDI();             // engancha el teclado MIDI
+
+
+let midiOsc  = null;
+
+
+function startAudioContext() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        oscilador = audioCtx.createOscillator();
-        gainNode = audioCtx.createGain();
 
-        gainNode.connect(audioCtx.destination);
-        oscilador.connect(gainNode);
-        oscilador.start();
+        // ---- MASTER DEL MUNDO ASCII ----
+       // ---- MASTER DEL MUNDO ASCII ----
+gainNode   = audioCtx.createGain();
+compressor = audioCtx.createDynamicsCompressor();
+
+// Compresor
+compressor.threshold.setValueAtTime(-50,  audioCtx.currentTime);
+compressor.knee.setValueAtTime(100,       audioCtx.currentTime);
+compressor.ratio.setValueAtTime(12,       audioCtx.currentTime);
+compressor.attack.setValueAtTime(0,       audioCtx.currentTime);
+compressor.release.setValueAtTime(1.25,   audioCtx.currentTime);
+
+// Volumen maestro del mundo (slider world-gain → worldGainBase)
+gainNode.gain.setValueAtTime(worldGainBase, audioCtx.currentTime);
+
+// ⬅️ NUEVO: ganancia interna para letras / árbol (controlada por mouse)
+lettersGain = audioCtx.createGain();
+lettersGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+
+// ---- GAIN ESPECÍFICO PARA EL RUIDO BLANCO ----
+whiteNoiseGain = audioCtx.createGain();
+whiteNoiseGain.gain.setValueAtTime(0.3, audioCtx.currentTime); // arranca audible
+whiteNoiseGain.connect(gainNode);
+
+
+// ---- OSCILADOR BASE PARA LETRAS / GLITCH ----
+oscilador = audioCtx.createOscillator();
+oscilador.type = 'sine';
+oscilador.frequency.setValueAtTime(220, audioCtx.currentTime);
+
+// ---- DELAY SUAVE EN PARALELO ----
+delayNode = audioCtx.createDelay(0.5);
+delayGain = audioCtx.createGain();
+delayNode.delayTime.setValueAtTime(0.2,  audioCtx.currentTime);
+delayGain.gain.setValueAtTime(0.1,       audioCtx.currentTime);
+
+// Conexiones:
+// oscilador → lettersGain → gainNode → compressor → destino
+oscilador.connect(lettersGain);
+lettersGain.connect(gainNode);
+gainNode.connect(compressor);
+compressor.connect(audioCtx.destination);
+
+// rama de delay: gainNode → delay → delayGain → compressor
+gainNode.connect(delayNode);
+delayNode.connect(delayGain);
+delayGain.connect(compressor);
+
+oscilador.start();
+
+    } else if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
     }
 }
+
 
 function solicitarPermisoMicrofono() {
     // Solicitar acceso al micrófono
@@ -30,11 +107,14 @@ function solicitarPermisoMicrofono() {
 
 // Esta función inicia el AudioContext y solicita permisos después de la interacción del usuario
 function iniciarInteraccionUsuario() {
-    iniciarAudio();
+    startAudioContext();
     solicitarPermisoMicrofono();
-    // Eliminar el listener para no volver a solicitar permisos
-    document.removeEventListener('touchend', iniciarInteraccionUsuario);
-}
+
+    // 🔹 activar la máscara negra deslizándose
+
+    }
+
+
 
 // Muestra un alerta y luego espera una interacción del usuario para iniciar todo
 // ====== SISTEMA DE ALERTA DE INICIO ESTILIZADO ======
@@ -45,13 +125,149 @@ function mostrarAlertaInicio() {
     }
 }
 
+// ====== AGREGAR NUEVO AUDIO DE INTRO ======
+let introAudio = new Audio('intro.mp3');
+introAudio.volume = 1.0;
+
+/// ====== MODIFICAR LA INICIALIZACIÓN DEL AUDIO DE INTRO ======
+
+
+// ====== MODIFICAR cerrarAlertaInicio() ======
 function cerrarAlertaInicio() {
     const startAlert = document.getElementById('start-alert');
     if (startAlert) {
         startAlert.style.display = 'none';
     }
-    iniciarInteraccionUsuario();
+
+    // Inicializa audio y permisos
+    startAudioContext();
+    solicitarPermisoMicrofono();
+
+    // Dispara máscara + REPRODUCIR INTRO.WAV EN LUGAR DEL ACORDE
+    const mask = document.getElementById('reveal-mask');
+    if (mask) {
+        mask.style.display = 'block';
+        mask.classList.add('is-revealing');
+
+        mask.addEventListener('animationstart', () => {
+            // CREAR Y REPRODUCIR intro.wav en lugar del acorde
+            try {
+                // Crear el audio solo cuando se necesite
+                if (!introAudio) {
+                    introAudio = new Audio('intro.mp3');
+                    introAudio.volume = 1.0;
+                    
+                    // Configurar para que se reproduzca cuando esté listo
+                    introAudio.addEventListener('canplaythrough', function() {
+                        introAudio.play().catch(e => {
+                            console.log('Error reproduciendo intro (canplaythrough):', e);
+                        });
+                    });
+                    
+                    // Cargar el audio
+                    introAudio.load();
+                } else {
+                    // Si ya existe, reproducir desde el inicio
+                    introAudio.currentTime = 0;
+                    introAudio.play().catch(e => {
+                        console.log('Error reproduciendo intro:', e);
+                    });
+                }
+            } catch (e) {
+                console.log('Error con audio intro:', e);
+            }
+        }, { once: true });
+
+        mask.addEventListener('animationend', () => {
+            // DETENER intro.wav cuando termine la animación
+            try {
+                if (introAudio) {
+                    introAudio.pause();
+                    introAudio.currentTime = 0;
+                }
+            } catch (e) {
+                console.log('Error deteniendo intro:', e);
+            }
+            mask.style.display = 'none';
+        }, { once: true });
+    }
 }
+
+// ====== MODIFICAR EL EVENT LISTENER DE LA MÁSCARA ======
+document.addEventListener('DOMContentLoaded', () => {
+    const mask = document.getElementById('reveal-mask');
+    if (!mask) return;
+
+    // OJO: al empezar la animación, aseguramos audioCtx y lanzamos INTRO.WAV
+    mask.addEventListener('animationstart', () => {
+        if (!audioCtx && typeof startAudioContext === 'function') {
+            startAudioContext();
+        }
+        
+        // REPRODUCIR intro.wav en lugar del acorde
+        try {
+            if (!introAudio) {
+                introAudio = new Audio('intro.wav');
+                introAudio.volume = 1.0;
+                
+                introAudio.addEventListener('canplaythrough', function() {
+                    introAudio.play().catch(e => {
+                        console.log('Error reproduciendo intro (DOM):', e);
+                    });
+                });
+                
+                introAudio.load();
+            } else {
+                introAudio.currentTime = 0;
+                introAudio.play().catch(e => {
+                    console.log('Error reproduciendo intro (DOM):', e);
+                });
+            }
+        } catch (e) {
+            console.log('Error con audio intro (DOM):', e);
+        }
+    });
+
+    mask.addEventListener('animationend', () => {
+        // DETENER intro.wav cuando termine la animación
+        try {
+            if (introAudio) {
+                introAudio.pause();
+                introAudio.currentTime = 0;
+            }
+        } catch (e) {
+            console.log('Error deteniendo intro (DOM):', e);
+        }
+        mask.style.display = 'none';
+    });
+});
+
+// ====== AGREGAR FUNCIÓN PARA VERIFICAR SI EL AUDIO SE PUEDE REPRODUIR ======
+function verificarAudioIntro() {
+    if (!introAudio) {
+        console.log("❌ introAudio no está inicializado");
+        return false;
+    }
+    
+    console.log("🔊 Estado de introAudio:", {
+        readyState: introAudio.readyState,
+        paused: introAudio.paused,
+        currentTime: introAudio.currentTime,
+        volume: introAudio.volume
+    });
+    
+    return introAudio.readyState >= 2; // 2 = HAVE_CURRENT_DATA, 3 = HAVE_FUTURE_DATA, 4 = HAVE_ENOUGH_DATA
+}
+
+// ====== DEBUG EN CONSOLA ======
+// Agrega esto para debuggear el audio de intro
+setInterval(() => {
+    if (introAudio) {
+        console.log("🎵 DEBUG introAudio - readyState:", introAudio.readyState, 
+                   "paused:", introAudio.paused, 
+                   "currentTime:", introAudio.currentTime.toFixed(2));
+    }
+}, 3000);
 
 // Muestra la alerta estilizada al cargar la página
 window.onload = function() {
@@ -75,6 +291,7 @@ function iniciarInteraccionUsuario() {
     startAudioContext();
     solicitarPermisoMicrofono();
 }
+
 
 
 
@@ -142,12 +359,39 @@ function debugEstado() {
     console.log(" ESTADO - Trapped:", trapped, "Movimiento:", enableMovementAndJump);
     
     const box = document.getElementById('wooden-box');
+    
+    
     const asciiArt = document.getElementById('ascii-art');
+
     console.log(" ELEMENTOS - Caja visible:", box?.style.display, "Personaje visible:", asciiArt?.style.display);
 }
 
 // Ejecutar debug cada 2 segundos
 setInterval(debugEstado, 2000);
+
+// Agrega este debug para monitorear el sintetizador
+function debugSintetizador() {
+    console.log("🎹 DEBUG SINTETIZADOR:", {
+        vocesActivas: Object.keys(midiVoices).length,
+        transpose: midiTranspose,
+        waveform: currentWaveform,
+        ganancia: midiMasterGain?.gain.value,
+        reverb: midiWetGain?.gain.value,
+        audioCtx: audioCtx ? "ACTIVO" : "INACTIVO"
+    });
+    
+    if (Object.keys(midiVoices).length > 0) {
+        console.log("🔍 Voces activas:", Object.keys(midiVoices));
+    }
+}
+
+
+// Ejecutar cada 3 segundos
+setInterval(debugSintetizador, 3000);
+
+
+
+
 
 // ====== ELIMINAR LA VARIABLE LOCAL enableMovementAndJump ======
 // BUSCA en DOMContentLoaded y ELIMINA esta línea:
@@ -264,21 +508,10 @@ function checkAudioCompletion() {
     }
 }
 
-  let oscilador;
-  let gainNode;
-  let compressor;
-  let reverbNode;
 
 
-    let enableMovementAndJump = true;
 
-  let whiteNoiseSource;
-  let whiteNoiseGain;
-  let shuffleInterval = null;
-  let currentIntervalId = null;
-let currentIntervalSpeed = 4; // Velocidad inicial del intervalo en milisegundos
-let collisionCount = 0;
-
+ 
 
 
   function toggleIntervalSpeed() {
@@ -298,7 +531,7 @@ currentIntervalId = setInterval(shuffleAsciiArtAndSound, currentIntervalSpeed);
 
 function shuffleAsciiArtAndSound() {
   let newText = '';
-  const characters = ['@', '#', '$', '%', '&', '*', '-', '+', '=', '?', ';', ':', ',', '.', '▒', '▓', '▒', '░', '█', '▓'];
+  const characters = ['@', '#', '$', '%', '&', '*', '▒', '▒', '=', '?', ';', ':', ',', '.', '▒', '▓', '▒', '░', '█', '▓'];
 
   // Shuffle del personaje principal
   for (let char of asciiArtElement.innerText) {
@@ -349,29 +582,1133 @@ if (!audioCtx) {
 
 
 
-document.body.addEventListener('dblclick', function() {
-toggleIntervalSpeed();
-// Aquí puedes agregar cualquier otra lógica que necesites ejecutar en un doble clic
+// ====== SONIDO DE LETRAS SOBRE ascii-art (SIEMPRE ACTIVO) ======
+const asciiArtElement = document.getElementById('ascii-art');
+
+document.getElementById('ascii-art').addEventListener('mousemove', function (event) {
+    if (!audioCtx || !gainNode || !oscilador || !lettersGain) return;
+
+    const w = this.offsetWidth || 1;
+    const h = this.offsetHeight || 1;
+
+    const normX = event.offsetX / w;  // 0..1
+    const freq  = 200 + normX * 2800; // 200–3000 Hz aprox
+    oscilador.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+    const normY    = event.offsetY / h;  // 0..1
+    const gainVal  = Math.max(0, Math.min(1, 1 - normY));
+
+    // ⬅️ SOLO MOVEMOS EL GAIN DE LAS LETRAS, NO EL MASTER
+    lettersGain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
 });
 
-const asciiArtElement = document.getElementById('ascii-art' );
-
-// Nuevo manejador de eventos para el movimiento del mouse
-document.getElementById('ascii-art').addEventListener('mousemove', function(event) {
-if (!audioCtx) return; // Asegúrate de que el contexto de audio esté inicializado
-
-const frequency = (event.offsetX / this.offsetWidth) * (10 - 13000) + 10000;
-oscilador.frequency.value = frequency; // Ajusta la frecuencia según la posición del mouse
 
 
-const gainValue = - 0.0 - (event.offsetY / this.offsetHeight);
-gainNode.gain.value = gainValue;
+let midiTranspose   = 0;
+let currentWaveform = 'sawtooth';
+
+let midiAccess   = null;
+let midiInput    = null;
+
+let midiVoices   = {};   // nota -> { osc, gain }
+
+// CADENA MIDI (NO TOCAR EL gainNode DEL JUEGO)
+// CADENA MIDI (NO TOCAR EL gainNode DEL JUEGO)
+let midiGain        = null; // bus de voces (dry+wet)
+let midiMasterGain  = null; // volumen global del sinte
+let midiFilter      = null; // LPF
+let midiWetGain     = null; // envío a reverb/delay
+let midiRevDelay    = null; // delay
+let midiRevFeedback = null; // feedback del delay
+
+// 🔹 Dinámicas del sintetizador (solo MIDI, NO el mundo ASCII)
+let midiComp        = null; // compresor general del sinte
+let midiLimiter     = null; // limitador tipo brickwall
+let midiBusWired    = false; // flag para no reconectar varias veces
+
+
+
+// ====== NOTA MIDI → FRECUENCIA (440 Hz base) ======
+function midiNoteToFreq(note) {
+    return 440 * Math.pow(2, (note - 69) / 12);
+}
+
+// Versión a 432 Hz por si la necesitas para el acorde de máscara
+function midiNoteToFreq432(note) {
+    return 432 * Math.pow(2, (note - 69) / 12);
+}
+
+// ====== NOTA MIDI → TECLA ASCII (solo letras y símbolos, SIN números) ======
+function noteToAsciiKey(note) {
+    const keys = [
+        'a','s','d','f','g','h','j','k','l',';',
+        'm','@','#','░','█'
+    ];
+    return keys[note % keys.length];
+}
+
+// ====== BUS DEL SINTETIZADOR MIDI ======
+// ====== BUS DEL SINTETIZADOR MIDI (con compresor + limitador) ======
+function ensureMIDIBus() {
+    if (!audioCtx) {
+        console.log("❌ ensureMIDIBus: audioCtx no existe");
+        return false;
+    }
+
+    // ---- MASTER DEL SINTE (SOLO MIDI) ----
+    if (!midiMasterGain) {
+        midiMasterGain = audioCtx.createGain();
+        // un poco más bajo para dejar headroom al compresor
+        midiMasterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+        console.log("✅ midiMasterGain creado");
+    }
+
+    // ---- COMPRESOR DEL SINTE ----
+    if (!midiComp) {
+        midiComp = audioCtx.createDynamicsCompressor();
+
+        // Compresión moderada
+        midiComp.threshold.setValueAtTime(-26,  audioCtx.currentTime); // umbral
+        midiComp.knee.setValueAtTime(18,        audioCtx.currentTime); // knee suave
+        midiComp.ratio.setValueAtTime(4,        audioCtx.currentTime); // relación moderada
+        midiComp.attack.setValueAtTime(0.006,   audioCtx.currentTime); // ataque rápido
+        midiComp.release.setValueAtTime(0.30,   audioCtx.currentTime); // release relativamente rápido
+
+        console.log("✅ midiComp creado (compresor general)");
+    }
+
+    // ---- LIMITADOR (otro compresor configurado como brickwall) ----
+    if (!midiLimiter) {
+        midiLimiter = audioCtx.createDynamicsCompressor();
+
+        // Config aproximada de limitador brickwall
+        midiLimiter.threshold.setValueAtTime(-1.0,  audioCtx.currentTime); // cerca de 0 dBFS
+        midiLimiter.knee.setValueAtTime(0.0,        audioCtx.currentTime); // knee duro
+        midiLimiter.ratio.setValueAtTime(20.0,      audioCtx.currentTime); // relación muy alta
+        midiLimiter.attack.setValueAtTime(0.001,    audioCtx.currentTime); // ataque ultra rápido
+        midiLimiter.release.setValueAtTime(0.12,    audioCtx.currentTime); // release corto
+
+        console.log("✅ midiLimiter creado (brickwall)");
+    }
+
+    // ---- FILTRO LPF ----
+    if (!midiFilter) {
+        midiFilter = audioCtx.createBiquadFilter();
+        midiFilter.type = 'lowpass';
+        midiFilter.frequency.setValueAtTime(8000, audioCtx.currentTime);
+        midiFilter.Q.setValueAtTime(0.7,      audioCtx.currentTime);
+        console.log("✅ midiFilter creado");
+    }
+
+    // ---- REVERB SENCILLA (delay con feedback) ----
+    if (!midiRevDelay) {
+        midiRevDelay = audioCtx.createDelay(1.0);
+        midiRevDelay.delayTime.setValueAtTime(0.28, audioCtx.currentTime);
+    }
+
+    if (!midiRevFeedback) {
+        midiRevFeedback = audioCtx.createGain();
+        midiRevFeedback.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        midiRevDelay.connect(midiRevFeedback);
+        midiRevFeedback.connect(midiRevDelay);
+    }
+
+    if (!midiWetGain) {
+        midiWetGain = audioCtx.createGain();
+        midiWetGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        midiWetGain.connect(midiRevDelay);
+        console.log("✅ cadena de reverb MIDI creada");
+    }
+
+    // ---- BUS DE VOCES (entrada de todas las notas) ----
+    if (!midiGain) {
+        midiGain = audioCtx.createGain();
+        midiGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+
+        // Dry → filtro → master sinte
+        midiGain.connect(midiFilter);
+        midiFilter.connect(midiMasterGain);
+
+        // Wet → reverb → master sinte
+        midiGain.connect(midiWetGain);
+        midiRevDelay.connect(midiMasterGain);
+
+        console.log("✅ Bus MIDI configurado (dry+filter+reverb → midiMasterGain)");
+    }
+
+    // ---- SALIDA FINAL (master → compresor → limitador → destino) ----
+    if (!midiBusWired) {
+        midiMasterGain.connect(midiComp);
+        midiComp.connect(midiLimiter);
+        midiLimiter.connect(audioCtx.destination);
+
+        midiBusWired = true;
+        console.log("🔗 midiMasterGain → midiComp → midiLimiter → destination");
+    }
+
+    return true;
+}
+
+
+// ======================================================
+//  INICIALIZAR MIDI
+// ======================================================
+function initMIDI() {
+    if (!navigator.requestMIDIAccess) {
+        console.warn("⚠️ Este navegador no soporta WebMIDI.");
+        return;
+    }
+
+    navigator.requestMIDIAccess({ sysex: false })
+        .then(onMIDISuccess)
+        .catch(onMIDIFailure);
+}
+
+function onMIDISuccess(midi) {
+    console.log("✅ WebMIDI OK");
+    midiAccess = midi;
+
+    midiAccess.inputs.forEach((input) => {
+        console.log("🎹 MIDI IN:", input.name, input.id);
+    });
+
+    const inputs = Array.from(midiAccess.inputs.values());
+    if (inputs.length > 0) {
+        midiInput = inputs[0];
+        midiInput.onmidimessage = handleMIDIMessage;
+        console.log("👉 Usando como entrada:", midiInput.name);
+    } else {
+        console.warn("⚠️ No hay dispositivos MIDI conectados.");
+    }
+
+    midiAccess.onstatechange = (e) => {
+        console.log("MIDI state change:", e.port.name, e.port.state);
+        if (e.port.type === "input" && e.port.state === "connected" && !midiInput) {
+            midiInput = e.port;
+            midiInput.onmidimessage = handleMIDIMessage;
+            console.log("🎹 Nueva entrada MIDI:", midiInput.name);
+        }
+    };
+}
+
+function onMIDIFailure(err) {
+    console.error("❌ Error inicializando MIDI:", err);
+}
+
+// ======================================================
+//  HANDLER MIDI PRINCIPAL
+// ======================================================
+function handleMIDIMessage(event) {
+    const [status, data1, data2] = event.data;
+    const cmd     = status & 0xF0;
+    const channel = status & 0x0F;
+    const note    = data1;
+    const value   = data2;
+
+    // El navegador exige gesto humano para crear/resumir audioCtx
+    if (!audioCtx) return;
+
+    if (cmd === 0x90 && value > 0) {
+        // NOTE ON
+        onMIDINoteOn(note, value, channel);
+    } else if (cmd === 0x80 || (cmd === 0x90 && value === 0)) {
+        // NOTE OFF
+        onMIDINoteOff(note, value, channel);
+    } else if (cmd === 0xB0) {
+        // CONTROL CHANGE
+        onMIDICC(data1, data2, channel);
+    }
+}
+
+// ======================================================
+//  MAPEOS DE PADS (sol, luna, gato, reset, etc.)
+// ======================================================
+const PAD_SOL       = 36;  // ascii-sol
+const PAD_LUNA      = 37;  // ascii-luna
+const PAD_GATO      = 38;  // ascii-cat
+const PAD_RUIDO     = 39;  // ascii-ruido (si quieres usarlo)
+const PAD_VOZ       = 40;  // ascii-voz (si quieres usarlo)
+const PAD_START_ALL = 41;  // play-all
+const PAD_TRAMPA    = 42;  // trampa
+const PAD_RESET     = 43;  // reset juego
+
+function midiClick(id) {
+    const el = document.getElementById(id);
+    if (el) el.click();
+}
+
+// ======================================================
+//  NOTE ON: crea voz nueva + letra ASCII
+// ======================================================
+function onMIDINoteOn(note, velocity, channel) {
+    console.log("🎹 NOTE ON - Nota:", note, "Vel:", velocity, "Canal:", channel);
+
+    // ====== PADS ESPECIALES DEL JUEGO ======
+    if (note === PAD_SOL) {
+        console.log("🔥 Activando Sol desde MIDI");
+        document.getElementById('ascii-sol')?.click();
+        return;
+    }
+    if (note === PAD_LUNA) {
+        console.log("🌙 Activando Luna desde MIDI");
+        document.getElementById('ascii-luna')?.click();
+        return;
+    }
+    if (note === PAD_GATO) {
+        console.log("🐱 Activando Gato desde MIDI");
+        document.getElementById('ascii-cat')?.click();
+        return;
+    }
+    if (note === PAD_RESET) {
+        console.log("🔁 RESET JUEGO desde MIDI");
+        if (typeof resetGame === 'function') resetGame();
+        return;
+    }
+
+    // ====== SINTETIZADOR ======
+    if (!audioCtx) {
+        if (typeof startAudioContext === 'function') {
+            startAudioContext();
+        } else {
+            console.log("⚠️ No hay audioCtx ni startAudioContext");
+            return;
+        }
+    }
+
+    if (!ensureMIDIBus()) {
+        console.log("❌ No se pudo crear el bus MIDI");
+        return;
+    }
+
+    // Si ya existía una voz para esa nota, la apagamos primero
+    if (midiVoices[note]) {
+        try {
+            const v = midiVoices[note];
+            v.gain.gain.cancelScheduledValues(audioCtx.currentTime);
+            v.gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            v.osc.stop(audioCtx.currentTime + 0.01);
+            v.osc.disconnect();
+            v.gain.disconnect();
+        } catch (e) {}
+        delete midiVoices[note];
+    }
+
+    try {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        const noteWithTranspose = note + midiTranspose;
+        const freq = midiNoteToFreq(noteWithTranspose);
+
+        osc.type = currentWaveform;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        // ====== ADSR ======
+        // ====== ADSR ======
+        const v   = velocity / 127;
+        const now = audioCtx.currentTime;
+
+        // pico algo por debajo de 1.0 para dejar margen al compresor
+        const peak = v * 0.7;  // 70% de la velocidad → menos clip
+
+        const a = Math.max(0.001, envAttack);
+        const d = Math.max(0.001, envDecay);
+        const s = Math.max(0.0, Math.min(envSustain, 1.0));
+
+
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(0.0, now);                       // inicio
+        gain.gain.linearRampToValueAtTime(peak, now + a);         // Attack
+        gain.gain.linearRampToValueAtTime(peak * s, now + a + d); // Decay → Sustain
+
+        osc.connect(gain);
+        gain.connect(midiGain);
+
+        osc.start();
+
+        midiVoices[note] = { osc, gain };
+
+        // Letra ASCII
+        const ch = noteToAsciiKey(noteWithTranspose);
+        if (typeof window.drawMidiLetter === 'function') {
+            window.drawMidiLetter(ch);
+        }
+
+        console.log("✅ VOZ MIDI creada:", note, "freq:", Math.round(freq), "Hz");
+    } catch (error) {
+        console.log("❌ ERROR creando voz MIDI:", error);
+    }
+}
+
+// ======================================================
+//  NOTE OFF: APAGA Y ELIMINA LA VOZ
+// ======================================================
+function onMIDINoteOff(note, velocity, channel) {
+    console.log("🎹 NOTE OFF - Nota:", note, "Vel:", velocity, "Canal:", channel);
+
+    if (!midiVoices[note] || !audioCtx) {
+        return;
+    }
+
+    const voice = midiVoices[note];
+    const now   = audioCtx.currentTime;
+
+    try {
+        const r = Math.max(0.01, envRelease);
+
+        // comenzamos release desde el valor actual
+        const currentVal = voice.gain.gain.value;
+        voice.gain.gain.cancelScheduledValues(now);
+        voice.gain.gain.setValueAtTime(currentVal, now);
+        voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + r);
+
+        voice.osc.stop(now + r + 0.05);
+    } catch (e) {
+        try { voice.osc.stop(now + 0.05); } catch (_) {}
+    }
+
+    try {
+        voice.osc.disconnect();
+        voice.gain.disconnect();
+    } catch (e) {}
+
+    delete midiVoices[note];
+}
+
+    try {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        const noteWithTranspose = note + midiTranspose;
+        const freq = midiNoteToFreq(noteWithTranspose);
+
+        osc.type = currentWaveform;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        // ====== ADSR ======
+        const v   = velocity / 127;
+        const now = audioCtx.currentTime;
+        const peak = v;
+
+        const a = Math.max(0.001, envAttack);
+        const d = Math.max(0.001, envDecay);
+        const s = Math.max(0.0, Math.min(envSustain, 1.0));
+
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(0.0, now);                       // inicio
+        gain.gain.linearRampToValueAtTime(peak, now + a);         // A
+        gain.gain.linearRampToValueAtTime(peak * s, now + a + d); // D → S
+
+        osc.connect(gain);
+        gain.connect(midiGain);
+
+        osc.start();
+
+        midiVoices[note] = { osc, gain };
+
+        // Letra ASCII
+        const ch = noteToAsciiKey(noteWithTranspose);
+        if (typeof window.drawMidiLetter === 'function') {
+            window.drawMidiLetter(ch);
+        }
+
+        console.log("✅ VOZ MIDI creada:", note, "freq:", Math.round(freq), "Hz");
+    } catch (error) {
+        console.log("❌ ERROR creando voz MIDI:", error);
+    }
+
+
+function onMIDINoteOff(note, velocity, channel) {
+    console.log("🎹 NOTE OFF - Nota:", note, "Vel:", velocity, "Canal:", channel);
+
+    if (!midiVoices[note] || !audioCtx) {
+        return;
+    }
+
+    const voice = midiVoices[note];
+    const now   = audioCtx.currentTime;
+
+    try {
+        const r = Math.max(0.01, envRelease);
+gainNode.gain.cancelScheduledValues(now);
+        // empezamos release desde el valor actual
+        const currentVal = voice.gain.gain.value;
+        voice.gain.gain.setValueAtTime(currentVal, now);
+        voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + r);
+
+        voice.osc.stop(now + r + 0.05);
+    } catch (e) {
+        try { voice.osc.stop(now + 0.05); } catch (_) {}
+    }
+
+    try {
+        voice.osc.disconnect();
+        voice.gain.disconnect();
+    } catch (e) {}
+
+    delete midiVoices[note];
+}
+
+// ======================================================
+//  NOTE OFF: APAGA Y ELIMINA LA VOZ SÍ O SÍ
+// ======================================================
+function onMIDINoteOff(note, velocity, channel) {
+    console.log("🎹 NOTE OFF - Nota:", note, "Vel:", velocity, "Canal:", channel);
+
+    if (!midiVoices[note] || !audioCtx) {
+        return;
+    }
+
+    const voice = midiVoices[note];
+    const now   = audioCtx.currentTime;
+
+    try {
+        // pequeño release para no hacer "click"
+        voice.gain.gain.cancelScheduledValues(now);
+        voice.gain.gain.setTargetAtTime(0, now, 0.03);
+    } catch (e) {}
+
+    try {
+        voice.osc.stop(now + 0.08);
+    } catch (e) {}
+
+    try {
+        voice.osc.disconnect();
+        voice.gain.disconnect();
+    } catch (e) {}
+
+    delete midiVoices[note];
+}
+
+
+// ======================================================
+//  CONTROL CHANGE: SINTE + MUNDO ASCII (MIDI ↔ UI)
+// ======================================================
+function onMIDICC(cc, value, channel) {
+    if (!audioCtx) return;
+
+    const norm = value / 127;  // 0–1
+
+    // Helper: ajustar slider de interfaz y disparar su lógica
+    const setSliderFromCC = (id, normVal) => {
+        const slider = document.getElementById(id);
+        if (!slider) return;
+
+        const min = slider.min !== "" ? parseFloat(slider.min) : 0;
+        const max = slider.max !== "" ? parseFloat(slider.max) : 1;
+
+        const mapped = min + normVal * (max - min);
+        slider.value = mapped;
+
+        // Dispara el mismo código que cuando mueves el slider con el mouse
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    // ================== CONTROLES DEL MUNDO ASCII (perillas 21–28) ==================
+    switch (cc) {
+        case 21: // CC21 → world-gain (master mundo ASCII)
+            setSliderFromCC('world-gain', norm);
+            console.log("🌍 CC21 → world-gain (UI + audio):", norm.toFixed(2));
+            return;
+
+        case 22: // CC22 → noise-gain (volumen ruido blanco)
+            setSliderFromCC('noise-gain', norm);
+            console.log("🐱 CC22 → noise-gain (UI + audio):", norm.toFixed(2));
+            return;
+
+        case 23: // CC23 → volumen Sol
+            setSliderFromCC('sun-gain', norm);
+            console.log("☀️ CC23 → sun-gain (UI + audio):", norm.toFixed(2));
+            return;
+
+        case 24: // CC24 → volumen Luna
+            setSliderFromCC('moon-gain', norm);
+            console.log("🌙 CC24 → moon-gain (UI + audio):", norm.toFixed(2));
+            return;
+
+        case 25: // CC25 → ganancia del oscilador de letras
+            if (lettersGain) {
+                const g = norm;
+                try {
+                    lettersGain.gain.setTargetAtTime(g, audioCtx.currentTime, 0.03);
+                } catch (e) {}
+                console.log("🔤 CC25 → lettersGain:", g.toFixed(2));
+            }
+            return;
+
+        case 26: // CC26 → frecuencia base del oscilador de letras
+            if (oscilador && oscilador.frequency) {
+                const f = 80 + norm * 5920; // 80–6000 Hz
+                try {
+                    oscilador.frequency.setTargetAtTime(f, audioCtx.currentTime, 0.03);
+                } catch (e) {}
+                console.log("🔤 CC26 → letters freq:", Math.round(f), "Hz");
+            }
+            return;
+
+        case 27: // CC27 → pitch Sol
+            setSliderFromCC('sun-pitch', norm);
+            console.log("☀️ CC27 → sun-pitch (UI + audio):", norm.toFixed(2));
+            return;
+
+        case 28: // CC28 → pitch Luna
+            setSliderFromCC('moon-pitch', norm);
+            console.log("🌙 CC28 → moon-pitch (UI + audio):", norm.toFixed(2));
+            return;
+    }
+
+    // ================== CONTROLES DEL SINTE MIDI (CC estándar) ==================
+    switch (cc) {
+        case 1: // CC1 → cantidad de reverb/delay del sinte
+            if (!ensureMIDIBus()) return;
+            if (midiWetGain && midiRevFeedback) {
+                const wet = norm;
+                const fb  = 0.15 + norm * 0.6; // 0.15–0.75
+                midiWetGain.gain.setValueAtTime(wet, audioCtx.currentTime);
+                midiRevFeedback.gain.setValueAtTime(fb,  audioCtx.currentTime);
+                console.log("💦 CC1 → Reverb wet:", wet.toFixed(2), "fb:", fb.toFixed(2));
+            }
+            return;
+
+        case 7: // CC7 → master del sinte MIDI
+            if (!ensureMIDIBus()) return;
+            if (midiMasterGain) {
+                midiMasterGain.gain.setValueAtTime(norm, audioCtx.currentTime);
+                console.log("🔊 CC7 → MIDI master:", norm.toFixed(2));
+            }
+            return;
+
+        case 74: // CC74 → cutoff del filtro del sinte
+            if (!ensureMIDIBus()) return;
+            if (midiFilter) {
+                const minHz = 120;
+                const maxHz = 12000;
+                const freq  = minHz * Math.pow(maxHz / minHz, norm);
+                midiFilter.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                console.log("🪄 CC74 → cutoff:", Math.round(freq), "Hz");
+            }
+            return;
+
+        default:
+            console.log("🎛️ CC (no mapeado):", cc, "val:", value, "canal:", channel);
+            return;
+    }
+}
+
+
+// ======================================================
+//  ACORDE DE MÁSCARA (MANTENGO TU LÓGICA, SOLO USAMOS midiNoteToFreq432)
+// ======================================================
+let maskChordVoices = [];
+let maskRevealStartTime = null;
+const MASK_ANIM_DURATION = 8.0;
+const MASK_CHORD_NOTES = [78, 52, 55, 93, 62, 64, 82]; // Cmaj6/9
+
+function playMaskChord() {
+    if (!audioCtx) return;
+
+    stopMaskChord();
+
+    const now = audioCtx.currentTime;
+    maskRevealStartTime = now;
+
+    MASK_CHORD_NOTES.forEach((n, i) => {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        const freqStart = midiNoteToFreq(n);
+        const freqEnd   = midiNoteToFreq432(n);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freqStart, now);
+        osc.frequency.linearRampToValueAtTime(freqEnd, now + MASK_ANIM_DURATION);
+
+        gain.gain.setValueAtTime(0, now);
+
+        const attack       = 1.5;
+        const sustainLevel = 0.08;
+        const releaseStart = MASK_ANIM_DURATION - 1.5;
+
+        gain.gain.linearRampToValueAtTime(sustainLevel, now + attack);
+        gain.gain.setValueAtTime(sustainLevel, now + releaseStart);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + MASK_ANIM_DURATION + 0.6);
+
+        gain.connect(audioCtx.destination);
+        osc.connect(gain);
+        osc.start(now);
+        osc.stop(now + MASK_ANIM_DURATION + 1.0);
+
+        maskChordVoices.push({ osc, gain });
+    });
+
+    console.log("🎹 ACORDE INICIAL REPRODUCIENDO (volumen bajo)");
+}
+
+function stopMaskChord() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+
+    maskChordVoices.forEach(v => {
+        try {
+            v.gain.gain.cancelScheduledValues(now);
+            v.gain.gain.linearRampToValueAtTime(0, now + 0.8);
+            v.osc.stop(now + 1.0);
+        } catch (e) {}
+    });
+
+    maskChordVoices = [];
+    maskRevealStartTime = null;
+}
+
+// ======================================================
+//  BOTÓN DE PÁNICO: DESBLOQUEAR SINTETIZADOR (tecla D)
+// ======================================================
+function destrabarSintetizador() {
+    if (!audioCtx) {
+        console.log("🚨 destrabarSintetizador: audioCtx no existe");
+        return;
+    }
+
+    console.log("🚨 DESTRABANDO SINTETIZADOR...");
+
+    Object.values(midiVoices).forEach(voice => {
+        try {
+            voice.gain.gain.cancelScheduledValues(audioCtx.currentTime);
+            voice.gain.gain.value = 0;
+            voice.osc.stop(audioCtx.currentTime + 0.01);
+            voice.osc.disconnect();
+            voice.gain.disconnect();
+        } catch (e) {}
+    });
+
+    midiVoices = {};
+    midiGain   = null;
+    midiWetGain = null;
+
+    ensureMIDIBus();
+
+    console.log("✅ Sintetizador destrabado - Voces activas:", Object.keys(midiVoices).length);
+}
+
+// Atajo de teclado para pánico: D
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'd' || event.key === 'D') {
+        destrabarSintetizador();
+    }
 });
 
+function stopMaskChord() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+
+    maskChordVoices.forEach(v => {
+        try {
+            v.gain.gain.cancelScheduledValues(now);
+            v.gain.gain.linearRampToValueAtTime(0, now + 0.8);
+            v.osc.stop(now + 1.0);
+        } catch (e) {}
+    });
+
+    maskChordVoices = [];
+    maskRevealStartTime = null;
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("🎛️ INICIANDO CONTROLES DE INTERFAZ (MIDI + WORLD)...");
+
+        // ============================================================
+    // 0. TOGGLE PANEL DEL SINTE MIDI + DRAGGABLE
+    // ============================================================
+    const synthPanel = document.getElementById('synth-panel');
+    const toggleBtn  = document.getElementById('toggle-synth-panel');
+
+    if (synthPanel && toggleBtn) {
+        // Aseguramos estado inicial visible
+        const current = window.getComputedStyle(synthPanel).display;
+        if (current === 'none') {
+            synthPanel.style.display = 'block';
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const nowDisplay = window.getComputedStyle(synthPanel).display;
+            const isHidden   = nowDisplay === 'none';
+
+            synthPanel.style.display = isHidden ? 'block' : 'none';
+            console.log("🎚️ Panel sinte MIDI visible:", isHidden ? "YES" : "NO");
+        });
+    }
+
+
+    // Hacer el panel arrastrable
+    if (synthPanel) {
+        let dragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        // Usamos el <h3> como "handle" si existe
+        const dragHandle = synthPanel.querySelector('h3') || synthPanel;
+
+        const onMouseDown = (e) => {
+            dragging = true;
+
+            const rect = synthPanel.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+
+            // Pasar de right/bottom a left/top para arrastrar sin problemas
+            synthPanel.style.position = 'fixed';
+            synthPanel.style.left = rect.left + 'px';
+            synthPanel.style.top  = rect.top + 'px';
+            synthPanel.style.right = 'auto';
+            synthPanel.style.bottom = 'auto';
+        };
+
+        const onMouseMove = (e) => {
+            if (!dragging) return;
+            synthPanel.style.left = (e.clientX - offsetX) + 'px';
+            synthPanel.style.top  = (e.clientY - offsetY) + 'px';
+        };
+
+        const onMouseUp = () => {
+            dragging = false;
+        };
+
+        dragHandle.style.cursor = 'move';
+        dragHandle.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup',   onMouseUp);
+    }
+
+    // ============================================================
+    // 1. CONTROLES DEL SINTE MIDI (TU LÓGICA ORIGINAL)
+    // ============================================================
+   // dentro de document.addEventListener('DOMContentLoaded', () => { ... })
+
+const waveSel  = document.getElementById('midi-waveform');
+const pitchCtl = document.getElementById('midi-pitch');
+const gainCtl  = document.getElementById('midi-gain');
+const revCtl   = document.getElementById('midi-reverb');
+const cutCtl   = document.getElementById('filter-cutoff');
+const resCtl   = document.getElementById('filter-resonance');
+
+const aCtl = document.getElementById('env-attack');
+const dCtl = document.getElementById('env-decay');
+const sCtl = document.getElementById('env-sustain');
+const rCtl = document.getElementById('env-release');
+
+// inicializar ADSR con valores de los sliders si existen
+if (aCtl) envAttack  = parseFloat(aCtl.value) || envAttack;
+if (dCtl) envDecay   = parseFloat(dCtl.value) || envDecay;
+if (sCtl) envSustain = parseFloat(sCtl.value) || envSustain;
+if (rCtl) envRelease = parseFloat(rCtl.value) || envRelease;
+
+// 1.1 Forma de onda
+if (waveSel) {
+    waveSel.addEventListener('change', () => {
+        currentWaveform = waveSel.value;
+        console.log("🌊 FORMA DE ONDA:", currentWaveform);
+
+        if (midiVoices) {
+            Object.values(midiVoices).forEach(voice => {
+                try { voice.osc.type = currentWaveform; } catch (e) {}
+            });
+        }
+    });
+}
+
+// 1.2 Transpose
+if (pitchCtl) {
+    midiTranspose = parseInt(pitchCtl.value, 10) || 0;
+    pitchCtl.addEventListener('input', () => {
+        midiTranspose = parseInt(pitchCtl.value, 10) || 0;
+        console.log("🎼 TRANSPOSICIÓN:", midiTranspose, "semitones");
+
+        if (audioCtx && midiVoices && Object.keys(midiVoices).length > 0) {
+            const now = audioCtx.currentTime;
+            Object.entries(midiVoices).forEach(([noteStr, voice]) => {
+                const originalNote = parseInt(noteStr, 10);
+                const newFreq = midiNoteToFreq(originalNote + midiTranspose);
+                try {
+                    voice.osc.frequency.setValueAtTime(newFreq, now);
+                } catch (e) {}
+            });
+        }
+    });
+}
+
+// 1.3 Ganancia global del sinte
+if (gainCtl) {
+    gainCtl.addEventListener('input', () => {
+        const g = parseFloat(gainCtl.value); // 0–1
+        if (!audioCtx) return;
+        if (!ensureMIDIBus()) return;
+
+        if (midiMasterGain) {
+            midiMasterGain.gain.setValueAtTime(g, audioCtx.currentTime);
+            console.log("🔊 GANANCIA MASTER SINTE:", g.toFixed(2));
+        }
+    });
+}
+
+// 1.4 Reverb (wet + feedback del delay)
+if (revCtl) {
+    revCtl.addEventListener('input', () => {
+        const norm = parseFloat(revCtl.value); // 0–1
+        if (!audioCtx) return;
+        if (!ensureMIDIBus()) return;
+
+        const wet = norm;
+        const fb  = 0.15 + norm * 0.6; // feedback 0.15–0.75
+
+        if (midiWetGain) {
+            midiWetGain.gain.setValueAtTime(wet, audioCtx.currentTime);
+        }
+        if (midiRevFeedback) {
+            midiRevFeedback.gain.setValueAtTime(fb, audioCtx.currentTime);
+        }
+        console.log("💦 REVERB wet:", wet.toFixed(2), "feedback:", fb.toFixed(2));
+    });
+}
+
+// 1.5 Filtro: cutoff
+if (cutCtl) {
+    cutCtl.addEventListener('input', () => {
+        const norm = parseFloat(cutCtl.value); // 0–1
+        if (!audioCtx) return;
+        if (!ensureMIDIBus()) return;
+
+        const minHz = 120;
+        const maxHz = 12000;
+        const freq = minHz * Math.pow(maxHz / minHz, norm);
+
+        if (midiFilter) {
+            midiFilter.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            console.log("🪄 CUTOFF:", Math.round(freq), "Hz");
+        }
+    });
+}
+
+// 1.6 Filtro: resonancia
+if (resCtl) {
+    resCtl.addEventListener('input', () => {
+        const norm = parseFloat(resCtl.value); // 0–1
+        if (!audioCtx) return;
+        if (!ensureMIDIBus()) return;
+
+        const q = 0.4 + norm * 18; // 0.4–18
+        if (midiFilter) {
+            midiFilter.Q.setValueAtTime(q, audioCtx.currentTime);
+            console.log("🪄 RESONANCIA Q:", q.toFixed(2));
+        }
+    });
+}
 
 
 
+// 1.7 ADSR (sliders → tiempos más largos)
+if (aCtl) {
+    aCtl.addEventListener('input', () => {
+        const norm = parseFloat(aCtl.value) || 0;   // asumimos 0–1
+        // Attack de 1 ms a 2.5 s
+        envAttack = 0.001 + norm * 2.5;
+        console.log("Env A:", envAttack.toFixed(3), "s");
+    });
+}
+if (dCtl) {
+    dCtl.addEventListener('input', () => {
+        const norm = parseFloat(dCtl.value) || 0;
+        // Decay de 20 ms a 2.5 s
+        envDecay = 0.02 + norm * 2.5;
+        console.log("Env D:", envDecay.toFixed(3), "s");
+    });
+}
+if (sCtl) {
+    sCtl.addEventListener('input', () => {
+        const norm = parseFloat(sCtl.value) || 0;
+        // Sustain 0–1
+        envSustain = Math.max(0, Math.min(1, norm));
+        console.log("Env S:", envSustain.toFixed(2));
+    });
+}
+if (rCtl) {
+    rCtl.addEventListener('input', () => {
+        const norm = parseFloat(rCtl.value) || 0;
+        // Release de 50 ms a 4 s
+        envRelease = 0.05 + norm * 4.0;
+        console.log("Env R:", envRelease.toFixed(3), "s");
+    });
+}
 
+
+    console.log("✅ CONTROLES MIDI LISTOS (wave, pitch, gain, filtro, reverb, ADSR)");
+
+    // ============================================================
+    // 2. CONTROLES AUDIO WORLD ASCII (WORLD / NOISE / SOL / LUNA)
+    // ============================================================
+    const worldGainSlider = document.getElementById('world-gain');
+    const noiseGainSlider = document.getElementById('noise-gain');
+    const sunGainSlider   = document.getElementById('sun-gain');
+    const sunPitchSlider  = document.getElementById('sun-pitch');
+    const moonGainSlider  = document.getElementById('moon-gain');
+    const moonPitchSlider = document.getElementById('moon-pitch');
+
+    // 2.1 WORLD GAIN (master mundo ASCII: gainNode)
+   // 2.1 WORLD GAIN (master mundo ASCII: gainNode)
+// 2.1 WORLD GAIN (master mundo ASCII: gainNode)
+if (worldGainSlider) {
+    // valor inicial del slider desde la variable lógica
+    worldGainSlider.value = worldGainBase;
+
+    worldGainSlider.addEventListener('input', () => {
+        const v = parseFloat(worldGainSlider.value);
+        if (isNaN(v)) return;
+
+        worldGainBase = v;  // guardamos base lógica
+
+        if (audioCtx && gainNode) {
+            try {
+                gainNode.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02);
+                console.log("🌍 World gain (slider):", v.toFixed(2));
+            } catch (e) {
+                console.log("❌ Error ajustando gainNode:", e);
+            }
+        } else {
+            console.log("⚠️ audioCtx o gainNode no existen aún");
+        }
+    });
+}
+
+// 2.2 NOISE GAIN (whiteNoiseGain)
+if (noiseGainSlider) {
+    noiseGainSlider.value = 0.3;  // mismo valor inicial que whiteNoiseGain
+
+    noiseGainSlider.addEventListener('input', () => {
+        const v = parseFloat(noiseGainSlider.value);
+        if (isNaN(v)) return;
+
+        if (audioCtx && whiteNoiseGain) {
+            try {
+                whiteNoiseGain.gain.setValueAtTime(v, audioCtx.currentTime);
+                console.log("🐱 Noise gain (slider):", v.toFixed(2));
+            } catch (e) {
+                console.log("❌ Error ajustando whiteNoiseGain:", e);
+            }
+        } else {
+            console.log("⚠️ audioCtx o whiteNoiseGain no existen aún");
+        }
+    });
+}
+
+    // 2.3 SOL Y LUNA: usar directamente audioSol / audioLuna
+    // (están creados arriba como new Audio('ambient.wav') y new Audio('0S.wav'))
+    const sunPlayer  = (typeof audioSol  !== 'undefined') ? audioSol  : null;
+    const moonPlayer = (typeof audioLuna !== 'undefined') ? audioLuna : null;
+
+    if (!sunPlayer) {
+        console.log("⚠️ audioSol no definido; revisa new Audio('ambient.wav')");
+    }
+    if (!moonPlayer) {
+        console.log("⚠️ audioLuna no definido; revisa new Audio('0S.wav')");
+    }
+
+    // 2.4 SUN GAIN & PITCH (slider UI)
+    if (sunGainSlider) {
+        // valor inicial del slider coherente con el volumen actual del Sol (0–1)
+        if (sunPlayer && typeof sunPlayer.volume === 'number') {
+            const min = sunGainSlider.min !== "" ? parseFloat(sunGainSlider.min) : 0;
+            const max = sunGainSlider.max !== "" ? parseFloat(sunGainSlider.max) : 1;
+            const v   = sunPlayer.volume;
+            sunGainSlider.value = min + (max - min) * v;
+        }
+
+        sunGainSlider.addEventListener('input', () => {
+            if (!sunPlayer) return;
+            const vRaw = parseFloat(sunGainSlider.value);
+            if (isNaN(vRaw)) return;
+
+            const min = sunGainSlider.min !== "" ? parseFloat(sunGainSlider.min) : 0;
+            const max = sunGainSlider.max !== "" ? parseFloat(sunGainSlider.max) : 1;
+            const norm = (vRaw - min) / (max - min || 1);
+
+            sunPlayer.volume = Math.max(0, Math.min(1, norm));
+            console.log("☀️ Sun gain (slider):", sunPlayer.volume.toFixed(2));
+        });
+    }
+
+    if (sunPitchSlider) {
+        // valor inicial de pitch
+        if (sunPlayer && typeof sunPlayer.playbackRate === 'number') {
+            // asumimos min/max definidos en el HTML, si no, 0.5–2.0
+            const min = sunPitchSlider.min !== "" ? parseFloat(sunPitchSlider.min) : 0.5;
+            const max = sunPitchSlider.max !== "" ? parseFloat(sunPitchSlider.max) : 2.0;
+            const rate = sunPlayer.playbackRate;
+            const norm = (rate - min) / (max - min || 1);
+            sunPitchSlider.value = min + norm * (max - min);
+        }
+
+        sunPitchSlider.addEventListener('input', () => {
+            if (!sunPlayer) return;
+            const rate = parseFloat(sunPitchSlider.value);
+            if (isNaN(rate)) return;
+
+            sunPlayer.playbackRate = rate;
+            console.log("☀️ Sun pitch (slider):", rate.toFixed(2));
+        });
+    }
+
+    // 2.5 MOON GAIN & PITCH (slider UI)
+    if (moonGainSlider) {
+        if (moonPlayer && typeof moonPlayer.volume === 'number') {
+            const min = moonGainSlider.min !== "" ? parseFloat(moonGainSlider.min) : 0;
+            const max = moonGainSlider.max !== "" ? parseFloat(moonGainSlider.max) : 1;
+            const v   = moonPlayer.volume;
+            moonGainSlider.value = min + (max - min) * v;
+        }
+
+        moonGainSlider.addEventListener('input', () => {
+            if (!moonPlayer) return;
+            const vRaw = parseFloat(moonGainSlider.value);
+            if (isNaN(vRaw)) return;
+
+            const min = moonGainSlider.min !== "" ? parseFloat(moonGainSlider.min) : 0;
+            const max = moonGainSlider.max !== "" ? parseFloat(moonGainSlider.max) : 1;
+            const norm = (vRaw - min) / (max - min || 1);
+
+            moonPlayer.volume = Math.max(0, Math.min(1, norm));
+            console.log("🌙 Moon gain (slider):", moonPlayer.volume.toFixed(2));
+        });
+    }
+
+    if (moonPitchSlider) {
+        if (moonPlayer && typeof moonPlayer.playbackRate === 'number') {
+            const min = moonPitchSlider.min !== "" ? parseFloat(moonPitchSlider.min) : 0.5;
+            const max = moonPitchSlider.max !== "" ? parseFloat(moonPitchSlider.max) : 2.0;
+            const rate = moonPlayer.playbackRate;
+            const norm = (rate - min) / (max - min || 1);
+            moonPitchSlider.value = min + norm * (max - min);
+        }
+
+        moonPitchSlider.addEventListener('input', () => {
+            if (!moonPlayer) return;
+            const rate = parseFloat(moonPitchSlider.value);
+            if (isNaN(rate)) return;
+
+            moonPlayer.playbackRate = rate;
+            console.log("🌙 Moon pitch (slider):", rate.toFixed(2));
+        });
+    }
+
+    console.log("✅ CONTROLES WORLD ASCII LISTOS (world, noise, sol, luna)");
+});
+
+// ======================================================
+//  IMPORTANTE: cerrar la alerta de inicio,
+//  asegúrate de añadir la clase .is-revealing al #reveal-mask:
+//      const mask = document.getElementById('reveal-mask');
+//      mask?.classList.add('is-revealing');
+//  para que se dispare la animación y el acorde.
+// ======================================================
 
 
 
@@ -461,69 +1798,6 @@ oscilador.start();
 
 
 
-function inicializarAudio() {
-if (!audioCtx) {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  gainNode = audioCtx.createGain();
-  compressor = audioCtx.createDynamicsCompressor();
-
-  compressor.threshold.setValueAtTime(-50, audioCtx.currentTime);
-  compressor.knee.setValueAtTime(100, audioCtx.currentTime); // Hace la transición más suave
-  compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
-  compressor.attack.setValueAtTime(0, audioCtx.currentTime);
-  compressor.release.setValueAtTime(1.25, audioCtx.currentTime);
-  gainNode.gain.value = 0.0;
-// Volumen inicial ajustable.
-gainNode.connect(compressor);
-  compressor.connect(audioCtx.destination);    }
-}
-function handleMoveEvent(e) {
-let x, y;
-if (e.type === 'mousemove') {
-  x = e.clientX;
-  y = e.clientY;
-} else if (e.type === 'touchmove' && e.touches) {
-  x = e.touches[0].clientX;
-  y = e.touches[0].clientY;
-} else {
-  return; // Si no es un evento conocido, no hacer nada
-}
-
-if (!audioCtx) return; // Asegúrate de que el contexto de audio esté inicializado
-
-let frecuencia = map(x, 0, window.innerWidth, 0, 0);
-let duracionNota = map(y, 0, window.innerHeight, 0.1, 0.1);
-
-if (osciladoresActivos.length > 0) {
-  osciladoresActivos.forEach(osc => {
-      osc.frequency.setValueAtTime(frecuencia, audioCtx.currentTime);
-  });
-}
-
-osciladoresActivos.forEach(osc => osc.stop());
-osciladoresActivos = [];
-
-let oscilador = audioCtx.createOscillator();
-oscilador.frequency.value = frecuencia;
-oscilador.type = 'sine';
-oscilador.connect(gainNode);
-oscilador.start();
-oscilador.stop(audioCtx.currentTime + duracionNota);
-
-osciladoresActivos.push(oscilador);
-}
-
-document.body.addEventListener('mousemove', handleMoveEvent);
-document.body.addEventListener('touchmove', handleMoveEvent);
-
-document.body.addEventListener('touchmove', function(e) {
-if (e.touches && e.touches.length > 0) {
-  // Utilizar la primera posición de toque como referencia
-  setValueAtTime(e.touches[0].clientX, e.touches[0].clientY);
-}
-});
-
-
 
 
 // Variable para almacenar el ID del intervalo para poder detenerlo más tarde si es necesario
@@ -603,25 +1877,6 @@ document.addEventListener('keydown', (event) => {
 
 
 
-function generarRuidoBlanco(duracion = 10) {
-const bufferSize = audioCtx.sampleRate * duracion; // Duración del buffer de 1 segundo
-const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-const data = buffer.getChannelData(0);
-
-// Llenar el buffer con datos de ruido blanco
-for (let i = 0; i < bufferSize; i++) {
-  data[i] = Math.random() * 2 - 1;
-}
-
-whiteNoiseSource = audioCtx.createBufferSource();
-whiteNoiseSource.buffer = buffer;
-whiteNoiseSource.loop = true;
-whiteNoiseSource.connect(gainNode);
-whiteNoiseSource.start(0);
-  whiteNoiseSource.stop(audioCtx.currentTime + duracion);
-
-}
-
 
 
 
@@ -681,30 +1936,8 @@ cicloAparicionGato(); // Inicia el ciclo de aparición del gato
 
 
 
-function startAudioContext() {
-if (!audioCtx) {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  oscilador = audioCtx.createOscillator();
-  gainNode = audioCtx.createGain();
 
-  // Crear delay y configurar
-  const delay = audioCtx.createDelay(0.1);
-  const delayGain = audioCtx.createGain();
-  delay.delayTime.value = 0.2; // Tiempo de delay inicial
-  delayGain.gain.value = 0.1;  // Ganancia del delay para controlar la intensidad del eco
-
-  delay.connect(delayGain); 
-  delayGain.connect(delay);
-  delayGain.connect(audioCtx.destination); // Enviar eco al destino
-
-  // Conectar el oscilador a gainNode y al delay
-  oscilador.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  gainNode.connect(delay); // También enviamos el sonido al delay
-
-  oscilador.start();
-}
-}
+// ====== ARRANQUE MIDI CUANDO LA PÁGINA CARGA ======
 
 
 // Instancia de p5 para las nubes
@@ -746,22 +1979,41 @@ let sketch2 = function(p) {
 new p5(sketch2, 'tree-sketch-container');
 
 // ================== SKETCH DE LETRAS SONORAS ==================
+// dentro de soundLetters(p) DESPUÉS de p.setup()
+// dentro de soundLetters(p) DESPUÉS de p.setup()
+window.drawMidiLetter = function(ch) {
+    // borra lo anterior
+    p.clear();
+
+    const x = p.random(p.width);
+    const y = p.random(p.height);
+
+    p.fill(255);
+    p.noStroke();
+    p.text(ch, x, y);
+
+    // se va casi de inmediato (no hay “tecla sostenida” visual)
+    setTimeout(() => {
+        p.clear();
+    }, 80); // 80 ms de flash
+};
+
+
+
+
 let soundLetters = function(p) {
   let prevX = 0;
   let prevY = 0;
   let moving = false;
 
-    p.setup = function() {
+  p.setup = function() {
     const container = document.getElementById('ascii-container');
     const desiredHeight = 400;
     const cnv = p.createCanvas(container.offsetWidth, desiredHeight);
 
-    // posición exacta del contenedor
     cnv.position(container.offsetLeft, container.offsetTop);
-
-    // estilo: transparente y MUY por encima de la lluvia
     cnv.style('background', 'transparent');
-    cnv.style('z-index', '33000');   // 👈 MÁS ALTO QUE LA LLUVIA
+    cnv.style('z-index', '33000');
     cnv.style('pointer-events', 'none');
 
     p.textSize(22);
@@ -769,7 +2021,6 @@ let soundLetters = function(p) {
     p.noStroke();
     p.clear();
   };
-
 
   p.windowResized = function() {
     const container = document.getElementById('ascii-container');
@@ -785,11 +2036,25 @@ let soundLetters = function(p) {
       prevX = p.mouseX;
       prevY = p.mouseY;
     } else if (moving) {
-      p.clear(); // limpio, transparente
+      p.clear();
       moving = false;
     }
   };
+    // 🔹 API global: dibujar una letra desde MIDI
+  window.drawMidiLetter = function(ch) {
+    // posición aleatoria dentro del canvas de letras
+    const x = p.random(p.width);
+    const y = p.random(p.height);
+
+    p.push();
+    p.fill(255);
+    p.textSize(22);
+    p.text(ch, x, y);
+    p.pop();
+  };
 };
+
+
 
 new p5(soundLetters, 'ascii-container');
 
@@ -876,21 +2141,24 @@ if (isVisible) {
 }
 }
 
-
 // En la función que maneja el movimiento del mouse sobre elementos ASCII
-document.getElementById('ascii-mountain').addEventListener('mousemove', function(event) {
-  if (!audioCtx) return;
-  
-  const frequency = (event.offsetX / this.offsetWidth) * (10 - 13000) + 10000;
-  if (oscilador) {
-    oscilador.frequency.value = frequency;
-  }
-  
-  const gainValue = -0.0 - (event.offsetY / this.offsetHeight);
-  if (gainNode) {
-    gainNode.gain.value = gainValue;
-  }
+// ====== SONIDO SOBRE ascii-mountain (montaña/árbol) ======
+document.getElementById('ascii-mountain').addEventListener('mousemove', function (event) {
+    if (!audioCtx || !oscilador || !lettersGain) return;
+
+    const w = this.offsetWidth || 1;
+    const h = this.offsetHeight || 1;
+
+    const normX = event.offsetX / w;
+    const normY = event.offsetY / h;
+
+    const freq = 800 + normX * 6000; // 800–6800 Hz
+    oscilador.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+    const gainVal = Math.max(0, Math.min(1, 1 - normY));
+    lettersGain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
 });
+
 
 
 
@@ -915,28 +2183,6 @@ if (event.key === ' ') {
 
 
 
-
-
-// Evento para controlar la ganancia con el movimiento del mouse o touch
-document.body.addEventListener('mousemove', handleMovement);
-document.body.addEventListener('touchmove', handleMovement);
-
-function handleMovement(event) {
-let x, y;
-if (event.touches) {
-  x = event.touches[0].clientX;
-  y = event.touches[0].clientY;
-} else {
-  x = event.clientX;
-  y = event.clientY;
-}
-
-// Escalar la amplitud del ruido blanco según la posición vertical
-let newGain = Math.max(0, Math.min(1, (window.innerHeight - y) / window.innerHeight));
-gainNode.gain.value = newGain;
-
-// Aquí puedes añadir la lógica para cambiar algún otro parámetro con x si lo deseas
-}
 
 // =================== LLUVIA + RAYOS + PORTAL GLITCH ===================
 let rainSketch = function(p) {
@@ -1422,9 +2668,17 @@ new p5(rainSketch, 'rain-sketch-container');
 
 
 
-
-
+// === VERSIÓN CORRECTA: RUIDO BLANCO CONTROLADO POR whiteNoiseGain ===
 function generarRuidoBlanco(duracion = 5) {
+    if (!audioCtx) return;
+
+    // Asegurar que existe whiteNoiseGain y está conectado al master
+    if (!whiteNoiseGain) {
+        whiteNoiseGain = audioCtx.createGain();
+        whiteNoiseGain.gain.setValueAtTime(0.3, audioCtx.currentTime); // nivel inicial
+        whiteNoiseGain.connect(gainNode);
+    }
+
     const sampleRate = audioCtx.sampleRate;
     const bufferSize = sampleRate * duracion;
     const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
@@ -1433,34 +2687,32 @@ function generarRuidoBlanco(duracion = 5) {
     // ==== ruido fragmentado en "beats" de milisegundos ====
     let i = 0;
     while (i < bufferSize) {
-        // duración del segmento en milisegundos (ajusta rangos a tu gusto)
-        const segMs = 20 + Math.random() * 50; // entre ~20 y 150 ms
+        const segMs  = 20 + Math.random() * 50;          // 20–70 ms
         const segLen = Math.floor(sampleRate * (segMs / 1000));
-
-        // ¿este segmento suena (ruido) o es silencio?
-        const activo = Math.random() < 0.55; // 55% de segmentos con ruido
+        const activo = Math.random() < 0.55;             // 55% de segmentos con ruido
 
         for (let j = 0; j < segLen && i < bufferSize; j++, i++) {
-            if (activo) {
-                // ruido blanco en este segmento
-                data[i] = (Math.random() * 2 - 1) * 0.7; // 0.7 para no saturar
-            } else {
-                // silencio total en este segmento
-                data[i] = 0;
-            }
+            data[i] = activo ? (Math.random() * 2 - 1) * 0.7 : 0;
         }
     }
 
-    // ==== playback del buffer ====
+    // Apagar ruido anterior, si existe
+    if (whiteNoiseSource) {
+        try { whiteNoiseSource.stop(); } catch (e) {}
+        try { whiteNoiseSource.disconnect(); } catch (e) {}
+        whiteNoiseSource = null;
+    }
+
+    // Crear nueva fuente y pasarla por whiteNoiseGain (para usar el slider)
     whiteNoiseSource = audioCtx.createBufferSource();
     whiteNoiseSource.buffer = buffer;
-    whiteNoiseSource.loop = true; // se repite el patrón de beats
-    whiteNoiseSource.connect(gainNode);
+    whiteNoiseSource.loop = true;                 // que siga hasta que tú la pares
+    whiteNoiseSource.connect(whiteNoiseGain);
     whiteNoiseSource.start(0);
-    whiteNoiseSource.stop(audioCtx.currentTime + duracion);
 
-    checkAudioCompletion();  // Verificar el estado de los audios después de reproducir o pausar
+    ruidoBlancoActivo = true;
 }
+
 
 
 function iluminarAsciiArt() {
@@ -1814,11 +3066,14 @@ function glitchAudioStart() {
         const now = audioCtx.currentTime;
 
         // Cambios MUY BRUSCOS y RÁPIDOS
-        const g = Math.random() > 0.3 ? Math.random() * 1.5 : 0.05; // MÁS EXTREMO
-        try {
-            gainNode.gain.cancelScheduledValues(now);
-            gainNode.gain.setValueAtTime(g, now);
-        } catch (e) {}
+        const factor = Math.random() > 0.3 ? (0.2 + Math.random() * 1.3) : 0.05;
+const target = worldGainBase * factor;
+
+try {
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setTargetAtTime(target, now, 0.01);
+} catch (e) {}
+
 
         // Jitter MUY RÁPIDO y EXTREMO
         if (oscilador && oscilador.frequency) {
@@ -2343,6 +3598,29 @@ function resetGame() {
     
     console.log("JUEGO REINICIADO - Personaje liberado");
 }
+
+
+
+
+// Y también agrega esta función de pánico rápido:
+function midiPanic() {
+    console.log("🚨 MIDI PANIC - Limpiando todas las notas");
+    Object.keys(midiVoices).forEach(key => {
+        const voice = midiVoices[key];
+        try {
+            voice.osc.stop();
+            voice.gain.disconnect();
+        } catch (e) {}
+    });
+    midiVoices = {};
+}
+
+// Atajo de teclado para pánico
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'p' || event.key === 'P') {
+        midiPanic();
+    }
+});
 
 
 
