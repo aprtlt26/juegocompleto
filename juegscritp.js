@@ -143,14 +143,13 @@ function cerrarAlertaInicio() {
     startAudioContext();
     solicitarPermisoMicrofono();
 
-    // Dispara máscara + REPRODUCIR INTRO.WAV EN LUGAR DEL ACORDE
     const mask = document.getElementById('reveal-mask');
     if (mask) {
         mask.style.display = 'block';
         mask.classList.add('is-revealing');
 
         mask.addEventListener('animationstart', () => {
-            // CREAR Y REPRODUCIR intro.wav en lugar del acorde
+
             try {
                 // Crear el audio solo cuando se necesite
                 if (!introAudio) {
@@ -179,7 +178,6 @@ function cerrarAlertaInicio() {
         }, { once: true });
 
         mask.addEventListener('animationend', () => {
-            // DETENER intro.wav cuando termine la animación
             try {
                 if (introAudio) {
                     introAudio.pause();
@@ -198,16 +196,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const mask = document.getElementById('reveal-mask');
     if (!mask) return;
 
-    // OJO: al empezar la animación, aseguramos audioCtx y lanzamos INTRO.WAV
     mask.addEventListener('animationstart', () => {
         if (!audioCtx && typeof startAudioContext === 'function') {
             startAudioContext();
         }
         
-        // REPRODUCIR intro.wav en lugar del acorde
         try {
             if (!introAudio) {
-                introAudio = new Audio('intro.wav');
+                introAudio = new Audio('intro.mp3');
                 introAudio.volume = 1.0;
                 
                 introAudio.addEventListener('canplaythrough', function() {
@@ -229,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     mask.addEventListener('animationend', () => {
-        // DETENER intro.wav cuando termine la animación
         try {
             if (introAudio) {
                 introAudio.pause();
@@ -3621,6 +3616,7 @@ document.addEventListener('keydown', function(event) {
         midiPanic();
     }
 });
+
 
 
 
