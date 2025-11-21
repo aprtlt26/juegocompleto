@@ -24,7 +24,6 @@
 
         <title>Le Mat World</title>
 <body>
-<button id="toggle-synth-panel">Sinte MIDI</button>
 
 
       <div id="reveal-mask"></div>
@@ -104,47 +103,146 @@
 
 </script>
 
-          <p style="color: #a2ff00; font-size: 13px; margin-top: 20px;">
-          <b>  "Arcano del Bosque Obscuro" </b>
+         <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const helpBtn = document.getElementById('helpBtn');
+      const helpOverlay = document.getElementById('helpOverlay');
+      const helpModal = document.getElementById('helpModal');
 
-      <p style="font-size: 9px;"> [Interactive Web - Computer Music - controlMIDI]</p>
-      
-        </p>
+      helpBtn.addEventListener('click', () => {
+        helpOverlay.style.display = 'flex';
+      });
 
-<button
-onclick="event.stopPropagation(); window.open('https://tarotsoundaprtlt.netlify.app/', '_blank');"
+      helpOverlay.addEventListener('click', e => {
+        if (!helpModal.contains(e.target)) {
+          helpOverlay.style.display = 'none';
+        }
+      });
+    });
+  </script>
+
+
+
+
+<p style="color: #a2ff00; font-size: 13px; margin-top: 20px;">
+  <b>"Arcano del Bosque Obscuro"</b>
+</p>
+
+<p style="font-size: 9px;">[Interactive Web - Computer Music - controlMIDI]</p>
+
+<a
+  id="btn-tarot"
+  href="https://tarotsoundaprtlt.netlify.app/"
+  target="_blank"
+  rel="noopener noreferrer"
   style="
+    display: inline-block;
     margin-top: 8px;
     padding: 6px 14px;
     font-size: 11px;
-    font-family: monospace;
+  font-family: Fira Code, Courier New, monospace;
+
     background-color: #000;
     color: #a2ff00;
     border: 1px solid #a2ff00;
     cursor: pointer;
+    text-decoration: none;
   "
 >
- Barajar con fecha 
-</button>
+  Barajar con fecha
+</a>
 
-        
-      <a href="http://" target="_blank" rel="noopener noreferrer"></a>
-        <p>----------------------------------------</p>
-        <h2> CLIC - ACTIVA - SONIDO</h2>
-        <p> <b> - Doble clic [- 1/2 FQ-M] </b> </p>
-        <P> <b> - ESP -> Whitenoise. </b> </P>
-        <P> <b> - Salir de la caja. Luna-Sol-cat -> </b> </P>
-        <P> <b> * MIDI control * </b> </P>
-        <P> <b> - Caminar C, Bb, C, Eb </b> </P>
-        <p>----------------------------------------</p>
+<p>----------------------------------------</p>
+<h2>CLIC - ACTIVA - SONIDO</h2>
+<p><b>- Doble clic [- 1/2 FQ-M]</b></p>
+<p><b>- ESP -> Whitenoise.</b></p>
+<p><b>- Salir de la caja. Luna-Sol-cat -></b></p>
+<p><b>* MIDI control *</b></p>
+<p><b>- Caminar C, Bb, C, Eb</b></p>
+<p>----------------------------------------</p>
 
-      
     </div>
 </div>
 
 
 </head>
 <body>
+
+   <button id="helpBtn" aria-label="Ayuda">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+  </button>
+
+  <div id="helpOverlay">
+    <div id="helpModal">
+      <h3>Tarot Sonoro - Erosión del Inconsciente</h3>
+
+
+
+<h2>Arcano del Bosque Obscuro</h2>
+
+<p>
+<em>Arcano del Bosque Obscuro</em> es una composición web–interactiva de música por computador (computer music) y tarot sonoro. El entorno visual y la lógica del juego se basan en un evento real vivido bajo los efectos de la ayahuasca en Colombia (2022), entrelazado con iconografía del Tarot de Marsella, otras barajas esotéricas y una práctica prolongada de estudio del ocultismo auténtico y las distintas “tecnologías espirituales” durante más de quince años.
+</p>
+
+<p>
+El núcleo de la experiencia parte de una visión en vigilia: un plano obscuro, un único árbol y una entidad de forma extraña que se comunica telepáticamente. Su dialogo funciona aquí como fórmula ambigua, al mismo tiempo advertencia y espejo del estado psíquico del jugador. El bosque, el árbol y la caja de madera en la que el sujeto es encerrado se convierten en dispositivos interactivos que traducen ese encuentro en mecánicas, audio y tránsito simbólico.
+</p>
+
+<h3>Mecánica interactiva y dispositivo sonoro</h3>
+
+<p>
+El juego articula una caminata por un bosque ASCII donde el personaje se desplaza, se detiene y vuelve a avanzar siguiendo las órdenes del teclado. Clics y combinaciones de teclas activan distintas capas sonoras: ruidos, drones, motivos tonales y texturas procesadas en tiempo real. Algunos elementos gráficos —como el árbol central, la Luna, el Sol o el gato— funcionan como <em>triggers</em> que abren o cierran “circuitos” auditivos específicos, modificando el paisaje acústico del bosque.
+</p>
+
+<p>
+La interacción contempla:
+</p>
+
+<p>
+• Desplazamiento del personaje por el bosque mediante el teclado.<br>
+• Activación de sonidos, ruidos y motivos musicales mediante clics y doble clics sobre elementos de la escena.<br>
+• Control y modulación de parámetros (frecuencias, filtros, densidad, ruido blanco) a través de combinaciones de teclas y, en algunos casos, control MIDI externo.<br>
+• Estados de “encierro” y “liberación” que se traducen en cambios en la mezcla, el espacio sonoro y la respuesta del entorno.
+</p>
+
+<h3>Tarot, senderos y caja de pruebas</h3>
+
+<p>
+En términos simbólicos, <em>Arcano del Bosque Obscuro</em> funciona como un arcano propio dentro de un sistema mayor de Tarot Sonoro. El bosque representa el plano intermedio entre la consciencia y el inconsciente; el árbol se comporta como eje vertical o “pilar” del Árbol de la Vida cabalístico; la caja de madera en la que el jugador queda atrapado encarna un umbral iniciático donde la voluntad es puesta a prueba.
+</p>
+
+<p>
+Cada acción del jugador —caminar, detenerse, activar o no determinados sonidos— equivale a transitar senderos internos. La escena no propone una predicción del futuro, sino un ejercicio de confrontación presente: la presa/pereza como dilema entre quedar atrapado en la inercia del dolor o activar conscientemente el proceso de transformación.
+</p>
+
+<h3>Psicoacústica, duelo y erosión del inconsciente</h3>
+
+<p>
+La pieza nace en el contexto de un duelo extremo y trabaja con el sonido como agente de erosión del inconsciente. El ruido blanco, las texturas densas, las resonancias graves y las modulaciones lentas se combinan con eventos puntuales —golpes, voces, cambios bruscos de timbre— que desorientan la percepción y fuerzan micro–reajustes atencionales. Esta fricción psicoacústica busca romper patrones rígidos de pensamiento y abrir un espacio experiencial donde el miedo, la desorientación y la lucidez coexisten.
+</p>
+
+<p>
+Lo que el jugador escucha y decide activar dentro del bosque es un reflejo de su propia disposición a entrar o no en el territorio incómodo de la transformación. Salir de la caja no es solo cumplir una condición del juego, sino una metáfora de atravesar el umbral entre el colapso y la reconfiguración.
+</p>
+
+<h3>Primera estación </h3>
+
+<p>
+<em>Arcano del Bosque Obscuro</em> es la primera estación de un ciclo narrativo mayor. Esta escena recoge el impacto inicial de la experiencia: el encuentro con la entidad, el encierro, el miedo y la frase enigmática que hiere el lenguaje cotidiano. En escenarios posteriores se abordará el proceso de integración, la transformación del símbolo y las consecuencias de ese contacto sobre la vida cotidiana, la práctica artística y la propia estructura del Tarot Sonoro.
+</p>
+
+<p>
+<strong>Diseño, concepto y desarrollo interactivo:</strong> Alfonso Pretelt - Compositor Experimental, artista sonoro y multimedia, psicólogo y desarrollador web.
+</p>
+
+   </div>
+  </div>
+     </div>
+  </div>
+
+
+
+<button id="toggle-synth-panel">interfaz MIDI</button>
 
 <div id="rain-sketch-container"  ></div>
 
@@ -617,7 +715,31 @@ onclick="event.stopPropagation(); window.open('https://tarotsoundaprtlt.netlify.
   ▓▒▓▓▓                                                  
 </div>
                
-                                                                 
+                    
+
+
+
+<div style=" font-size: 13x;" id="ascii-text">
+
+<section>
+
+
+    <p style="font-size: 21x; font-family: Fira Code, Menlo, Monaco, Consolas, monospace">Capitulo 1: Encuentro con el Daemon en el bosque obscuro.</h3>
+  
+   <p style="font-size: 11x; font-family: Fira Code, Menlo, Monaco, Consolas, monospace"> Esta es una composición web-interactiva (computer-music) cuyo simbolismo gráfico y visual está basado en un evento real mezclado con iconografía del tarot Marselles y otras barajas, {tecnología espiritual en el contexto del ocultismo autentico}, al cual he dedicado más de 15 años de estudio profundo, tiempo conmemorado y celebrado en esta pieza interactiva.
+
+   Posterior a una toma de ayahuasca en Colombia en el año 2022 (la cuarta en mis 38 años de vida). En plena vigilia, con los ojos cerrados, me encontré consciente en un plano obscuro donde solo había un árbol y un ser con extremidades, forma y cara extraña, este ser me habló... Le habló a mi mente, en forma telepática y con voz grueza dijo: (Cada quien hace lo que quiere con su presa/pereza); la última palabra fue ambigua para mí hasta el día de hoy. En ese instante sentí verdadero miedo y desorientación; entonces el ser me encerró en una caja de madera con una tapa muy pesada. Solo pude salir siendo consciente de lo que estaba pasand pues no era un sueño, sino una experiencia en vigilia, en otro plano dimensional. Al cabo de unos segundos pude salir y retornar a este plano desde donde escribo estas letras y diseño este escenario interactivo virtual; a pesar de mi temor, a pesar de mi doble interpretación de sus últimas sílabas,  su mensaje fue muy claro. 
+
+ En ese momento de mi vida, me encontraba yo, atravesando el duelo más denso que he podido vivir hasta ahora, confrontando aquel dolor día tras día me vi en los limites de la realidad literalmente. Después de dos años y medio de un indagar e investigar intensos sobre lo ocurrido de múltiples maneras, encontré respuestas inimaginables que cambiaron mi vida para siempre y por siempre.  Continaré narrando en el proximo escenario pues lo que ocurrió despues fue la trasnformación. </p>
+     </p>
+
+   
+
+  <p style=" font-size: 16x; color: #bababa; "> Diseño/Desarollo---Alfonso Pretelt 
+   aprtlt® All rights reserved. https://alfonsopretelt.com/  </p>
+
+
+</div>
                       
         <div class="ascii-block">
   <pre id="ascii-cat2" style="color: rgb(189, 252, 255);  z-index: 999000000000000">       
@@ -712,27 +834,6 @@ onclick="event.stopPropagation(); window.open('https://tarotsoundaprtlt.netlify.
 
              
 
-<div style=" font-size: 13x;" id="ascii-text">
-
-<section>
-
-
-    <p style=" font-size: 16x;">Capitulo 1: Encuentro con el Daemon en el bosque obscuro.</h3>
-  
-   <p style="font-size: 11x; font-family: Fira Code, Menlo, Monaco, Consolas, monospace"> Esta es una composición web-interactiva (computer-music) cuyo simbolismo gráfico y visual está basado en un evento real mezclado con iconografía del tarot Marselles y otras barajas, {tecnología espiritual en el contexto del ocultismo autentico}, al cual he dedicado más de 15 años de estudio profundo, tiempo conmemorado y celebrado en esta pieza interactiva.
-
-   Posterior a una toma de ayahuasca en Colombia en el año 2022 (la cuarta en mis 38 años de vida). En plena vigilia, con los ojos cerrados, me encontré consciente en un plano obscuro donde solo había un árbol y un ser con extremidades, forma y cara extraña, este ser me habló... Le habló a mi mente, en forma telepática y con voz grueza dijo: (Cada quien hace lo que quiere con su presa/pereza); la última palabra fue ambigua para mí hasta el día de hoy. En ese instante sentí verdadero miedo y desorientación; entonces el ser me encerró en una caja de madera con una tapa muy pesada. Solo pude salir siendo consciente de lo que estaba pasand pues no era un sueño, sino una experiencia en vigilia, en otro plano dimensional. Al cabo de unos segundos pude salir y retornar a este plano desde donde escribo estas letras y diseño este escenario interactivo virtual; a pesar de mi temor, a pesar de mi doble interpretación de sus últimas sílabas,  su mensaje fue muy claro. 
-
- En ese momento de mi vida, me encontraba yo, atravesando el duelo más denso que he podido vivir hasta ahora, confrontando aquel dolor día tras día me vi en los limites de la realidad literalmente. Después de dos años y medio de un indagar e investigar intensos sobre lo ocurrido de múltiples maneras, encontré respuestas inimaginables que cambiaron mi vida para siempre y por siempre.  Continaré narrando en el proximo escenario pues lo que ocurrió despues fue la trasnformación. </p>
-     </p>
-
-   
-
-  <p style=" font-size: 16x; color: #bababa; "> Diseño/Desarollo---Alfonso Pretelt 
-   aprtlt® All rights reserved. https://alfonsopretelt.com/  </p>
-
-
-</div>
 
 
   
@@ -824,6 +925,7 @@ onclick="event.stopPropagation(); window.open('https://tarotsoundaprtlt.netlify.
 </body>
 
 </html>
+
 
 
 
