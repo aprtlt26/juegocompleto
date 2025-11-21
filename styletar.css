@@ -1305,17 +1305,80 @@ input[type="range"]:focus {
     color: #000000;
     font-family: monospace;
     white-space: pre;
-    font-size: 4px;       /* súbelo un poco para que se vea mejor */
+    font-size: 4px;     
     line-height: 1;
 
-    /* quita esto, no lo necesitas:
-    text-decoration: dashed;
-    text-decoration: #000;
-    */
-
-    /* SOMBRA / GLOW VERDE BIEN MARCADA */
+    
     text-shadow:
         0 0 2px #f4f4f4,
         0 0 4px #bdbdbd,
         0 0 8px #a6ff00;
 }
+
+
+
+ #helpBtn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.127);
+      border: 2px solid #a1ff4e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(190, 255, 78, 0.8), 0 0 16px rgba(211, 255, 78, 0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      transition: box-shadow 0.3s;
+    }
+    #helpBtn:hover {
+      box-shadow: 0 0 12px rgb(190, 255, 78), 0 0 24px rgba(165, 175, 185, 0.8);
+    }
+
+    #helpBtn svg {
+      width: 24px;
+      height: 24px;
+      stroke: #dcff4e;
+      fill: none;
+    }
+    /* Overlay y Modal de ayuda */
+    #helpOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+    #helpModal {
+      width: 640px;
+      max-height: 100vh;
+      overflow-y: auto;
+      padding: 1rem;
+      background: #0000009d;
+      color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      font-size: 0.7rem;
+      position: relative;
+      text-align: center;
+    }
+    #helpModal h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: #aa00ff;
+    }
+    #helpModal p {
+      margin: 0.5rem 0;
+    }
+    #helpModal a {
+      display: block;
+      margin: 0.3rem 0;
+      color: #ffd6d6;
+      text-decoration: none;
+      font-weight: bold;
+    }
