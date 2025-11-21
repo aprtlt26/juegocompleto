@@ -6,7 +6,7 @@ let compressor;
 let delayNode;
 let delayGain;
 let lettersGain;  // ⬅️ ganancia solo para letras / árbol / mouse
-
+let tarotOpened = (sessionStorage.getItem('tarotOpened') === '1');
 let reverbNode;
 
 let enableMovementAndJump = true;
@@ -18,6 +18,12 @@ let currentIntervalId = null;
 let currentIntervalSpeed = 4;
 let collisionCount = 0;
 
+let portalLocked   = true;   // la barrera está activa al principio
+let portalUnlocked = false;  // quedará true después de la fusión
+let characterHasAura = false; // para no añadir el aura mil veces
+
+
+
 // Ganancia base del mundo, controlada por el slider
 let worldGainBase = 0.1;
 
@@ -28,6 +34,8 @@ let mouseAudioEnabled = true;
       // === CONTROL GLOBAL DEL AUDIO DEL MOUSE ===
 
 
+
+      
     initMIDI();             // engancha el teclado MIDI
 
 
@@ -453,27 +461,126 @@ setInterval(verificarLiberacion, 80);
 
 
 
-
-
-// ✅ MODIFICAR checkPortalDistance para que no active glitch con 3 audios
-// BUSCA la función checkPortalDistance y AGREGA esto al INICIO:
+// Modificar checkPortalDistance para activar efectos de aura
 function checkPortalDistance() {
-    // ✅ SI LOS 3 AUDIOS ESTÁN ACTIVOS, NO HACER NADA CON EL PORTAL
-    if (solActivo && lunaActiva && ruidoBlancoActivo) {
+    // 0) si el portal ya está fusionado / desbloqueado, no hacemos nada más
+    if (portalUnlocked) {
+        portalLocked      = false;
+        insidePortalZone  = false;
+        fusionStartTime   = null;
+
         if (window.portalBreak) {
             glitchAudioStop();
         }
-        portalLocked = false; // Asegurar que esté desbloqueado
-        return; // Salir de la función, no activar glitch
+        return;
     }
-    
-    // El resto del código original de checkPortalDistance aquí...
-    if (!portalImg) return;
+
+    const portalImg = document.getElementById('portal-img');
+    if (!portalImg || portalImg.style.display === 'none' || portalImg.dataset.disabled === '1') {
+        // la imagen ya fue retirada del escenario
+        return;
+    }
 
     const asciiRect = asciiArt.getBoundingClientRect();
-    const imgRect = portalImg.getBoundingClientRect();
-    // ... resto del código original
+    const imgRect   = portalImg.getBoundingClientRect();
+
+    const ax = asciiRect.left + asciiRect.width / 4;
+    const ay = asciiRect.top  + asciiRect.height / 4;
+    const ix = imgRect.left   + imgRect.width  / 4;
+    const iy = imgRect.top    + imgRect.height / 4;
+
+    const dx = ax - ix;
+    const dy = ay - iy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    const isNear  = dist < thresholdOuter;
+    const canFuse = dist < thresholdFusion;
+
+    // Activar/desactivar efectos de aura según distancia
+    if (isNear) {
+        portalImg.classList.add('near-portal');
+    } else {
+        portalImg.classList.remove('near-portal');
+    }
+
+    // ========= TIMER DE TRAMPA =========
+    if (isNear && !trapTimeoutStarted && !trapped) {
+        trapTimeoutStarted = true;
+        trapTimeoutId = setTimeout(() => {
+            // Se ejecuta 10 s después de ACERCARSE
+            // Si SIGUE cerca y no se ha fusionado → TRAMPA
+            if (insidePortalZone && portalLocked && !trapped && !portalUnlocked) {
+                trapped = true;
+                trapCharacterInBox();
+                if (typeof mostrarAlertaTrampa === 'function') {
+                    mostrarAlertaTrampa();
+                } else {
+                    alert("¡Estás atrapado en la caja. Libérate activando los 3 sonidos!");
+                }
+            }
+        }, 10000);
+    }
+
+    // ====== Lógica de fusión ======
+    if (isNear) {
+        if (!insidePortalZone) {
+            insidePortalZone = true;
+            portalLocked = true;
+            fusionStartTime = canFuse ? performance.now() : null;
+
+            // NO disparar glitch si ya hay aura / glow / portal fusionado
+            const hasGlow = window.asciiArtElement && asciiArtElement.classList.contains('glow');
+            if (!window.portalBreak && !characterHasAura && !hasGlow && !portalUnlocked) {
+                triggerPortalGlitch();
+            }
+
+            try {
+                portalVoice.currentTime = 0;
+                portalVoice.play();
+            } catch (e) {}
+        } else {
+            if (canFuse) {
+                if (!fusionStartTime) {
+                    fusionStartTime = performance.now();
+                } else {
+                    const elapsed = performance.now() - fusionStartTime;
+                    if (elapsed >= 4000) {
+                        // 🔑 AQUÍ SE COMPLETA LA FUSIÓN
+                        finishPortalFusion();
+                        // cancelar trampa si existía
+                        if (trapTimeoutId) {
+                            clearTimeout(trapTimeoutId);
+                            trapTimeoutId = null;
+                        }
+                        trapTimeoutStarted = false;
+                    }
+                }
+            } else {
+                fusionStartTime = null;
+            }
+        }
+    } else {
+        if (insidePortalZone) {
+            insidePortalZone = false;
+            fusionStartTime  = null;
+
+            try {
+                portalVoice.pause();
+                portalVoice.currentTime = 0;
+            } catch (e) {}
+
+            glitchAudioStop();
+        }
+
+        // Si se aleja, reseteamos el timer de trampa
+        if (trapTimeoutId) {
+            clearTimeout(trapTimeoutId);
+            trapTimeoutId = null;
+        }
+        trapTimeoutStarted = false;
+    }
 }
+
 
 // Función para iluminar el ASCII art
 function iluminarAsciiArt() {
@@ -1429,6 +1536,17 @@ if (resCtl) {
     });
 }
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const tarotBtn = document.getElementById('btn-tarot');
+  if (tarotBtn) {
+    tarotBtn.addEventListener('click', (e) => {
+      // Que este clic NO se vaya al document ni a otros listeners
+      e.stopPropagation();
+      // No hacemos preventDefault porque SÍ queremos que el link se abra
+    });
+  }
+});
 
 
 // 1.7 ADSR (sliders → tiempos más largos)
@@ -2686,7 +2804,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const thresholdFusion = 60;
 
     // estado del portal / trampa - USAR LA VARIABLE GLOBAL
-    let portalLocked        = true;
+    // estado del portal / trampa - usamos la global (NO volver a declarar)
+    portalLocked = true;
     let insidePortalZone    = false;
     let fusionStartTime     = null;
     // trapped YA ESTÁ DEFINIDA GLOBALMENTE - NO LA VUELVAS A DECLARAR
@@ -2698,6 +2817,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let trapTimeoutStarted  = false;
     let trapTimeoutId       = null;
 
+
     function moveCharacter(event) {
         if (!enableMovementAndJump) return;
         if (trapped) return; // si ya está encerrado, no se mueve más
@@ -2706,6 +2826,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const oldPos = { ...position };
         let newPos   = { ...position };
 
+        // ================= MOVIMIENTO BÁSICO =================
         switch (event.key) {
             case 'ArrowUp':
                 newPos.top -= step;
@@ -2731,8 +2852,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
         }
 
-        // BLOQUEO HORIZONTAL por la barrera de la imagen
-        if (portalLocked && portalImg) {
+        // ==========================================
+        //  DETECCIÓN DEL CRUCE DE LA IMAGEN (PORTAL)
+        // ==========================================
+        let crossing = false;
+
+        if (portalImg) {
             const asciiRect = asciiArt.getBoundingClientRect();
             const imgRect   = portalImg.getBoundingClientRect();
 
@@ -2741,20 +2866,71 @@ document.addEventListener('DOMContentLoaded', () => {
             const deltaX = newPos.left - oldPos.left;
             const axNew  = axOld + deltaX;
 
-            const crossing =
+            // ¿el centro del personaje pasa de un lado al otro del centro de la imagen?
+            crossing =
                 (axOld < ix && axNew >= ix) ||
                 (axOld > ix && axNew <= ix);
 
-            if (crossing) {
-                // 🔒 mientras portalLocked = true NO pasa al otro lado
+            // 1) SI LA BARRERA SIGUE ACTIVA (portalLocked = true y aún NO desbloqueado)
+            if (crossing && portalLocked && !portalUnlocked) {
+                // 🔒 NO dejamos cruzar
                 newPos.left = oldPos.left;
+            }
+
+            // 2) SI EL PORTAL YA ESTÁ DESBLOQUEADO PARA SIEMPRE (portalUnlocked = true)
+            //    y esta es la PRIMERA VEZ que cruza → darle el aura
+            if (crossing && !portalLocked && portalUnlocked && !characterHasAura) {
+                asciiArt.classList.add('character-aura');
+                characterHasAura = true;
+                console.log("✨ Personaje atraviesa el portal y obtiene el aura");
             }
         }
 
+        // ==========================================
+        //  LÍMITES DE VENTANA (WRAP HORIZONTAL + SALIDA VERTICAL)
+        // ==========================================
+        const viewportWidth  = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        const rect      = asciiArt.getBoundingClientRect();
+        const charWidth = rect.width;
+        const charHeight = rect.height;
+const margenHorizontal = 180; // ajusta este valor
+
+// si sale por la derecha más allá de un margen  → entra por la izquierda
+if (newPos.left > viewportWidth + margenHorizontal) {
+    newPos.left = -charWidth - margenHorizontal;
+}
+// si sale por la izquierda más allá de un margen → entra por la derecha
+else if (newPos.left + charWidth < -margenHorizontal) {
+    newPos.left = viewportWidth + margenHorizontal;
+}
+
+
+     // ---- SALIDA POR ARRIBA → ABRIR tarot_syntheziser (SOLO 1 VEZ POR SESIÓN) ----
+// detectamos cruce del borde superior (de dentro a fuera)
+// ---- SALIDA POR ARRIBA → ABRIR tarot_syntheziser (SOLO 1 VEZ) ----
+// usamos el BORDE INFERIOR del personaje, para que salga completo
+const prevBottom = oldPos.top + charHeight;
+const newBottom  = newPos.top + charHeight;
+
+if (!tarotOpened && prevBottom >= 0 && newBottom < 0) {
+    tarotOpened = true;
+    window.open('https://arteypsique.netlify.app/tarot_syntheziser', '_blank');
+
+    // lo dejamos justo pegado al borde superior (sale pero no se pierde)
+    newPos.top = -charHeight;
+}
+
+
+        // ==========================================
+        //  APLICAR POSICIÓN
+        // ==========================================
         position = newPos;
         updatePosition();
-        // el control de distancias y tiempos se hace en checkPortalDistance()
+        // checkPortalDistance() ya se llama dentro de updatePosition()
     }
+
 
 
     function updatePosition() {
@@ -2875,29 +3051,7 @@ function checkPortalDistance() {
 
 ///----------------------------------------------------////
 
-    function finishPortalFusion() {
-        // ya cumplió 4s en la zona interna (quieto encima)
-        insidePortalZone = true;   // sigue cerca pero ya “fusionado”
-        fusionStartTime  = null;
-        portalLocked     = false;  // 🔓 ahora PUEDE cruzar la imagen
-
-        // apagar voz
-        try {
-            portalVoice.pause();
-            portalVoice.currentTime = 0;
-        } catch (e) {}
-
-        // apagar glitch (visual + audio)
-        glitchAudioStop(); // esto pone window.portalBreak = false
-
-        // si se fusiona, cancelamos cualquier trampa pendiente
-        if (trapTimeoutId) {
-            clearTimeout(trapTimeoutId);
-            trapTimeoutId = null;
-        }
-        trapTimeoutStarted = false;
-    }
-
+    
 
 
 //---------------------------------atrapar..........
@@ -3040,32 +3194,50 @@ function glitchAudioStop() {
     window.portalBreak = false;
 }
 
-// Modificar finishPortalFusion para quitar el aura
+    
 function finishPortalFusion() {
-    insidePortalZone = true;
-    fusionStartTime = null;
-    portalLocked = false;
+    // ya cumplió 4s en la zona interna (quieto encima)
+    insidePortalZone = true;   // sigue cerca pero ya “fusionado”
+    fusionStartTime  = null;
 
+    // 🔓 a partir de ahora NO hay más barrera ni portal funcional
+    portalLocked   = false;
+    portalUnlocked = true;   // flag permanente
+
+    // dar aura al personaje si aún no la tiene
+    if (!characterHasAura && window.asciiArtElement) {
+        asciiArtElement.classList.add('character-aura');
+        characterHasAura = true;
+    }
+
+    // apagar voz del portal
     try {
         portalVoice.pause();
         portalVoice.currentTime = 0;
     } catch (e) {}
 
-    // Quitar aura intensa al completar fusión
+    // quitar completamente el portal del escenario
     const portalImg = document.getElementById('portal-img');
     if (portalImg) {
         portalImg.classList.remove('glitch-active');
+        portalImg.classList.remove('near-portal');
+        portalImg.style.display = 'none';   // 👈 sacar la imagen de la escena
+        portalImg.dataset.disabled = '1';   // 👈 marcarla como desactivada
     }
 
+    // apagar glitch de audio y visual
     glitchAudioStop();
+    window.portalBreak = false;
 
+    // cancelar cualquier trampa pendiente
     if (trapTimeoutId) {
         clearTimeout(trapTimeoutId);
-        trapTimeoutStarted = false;
+        trapTimeoutId = null;
     }
+    trapTimeoutStarted = false;
+
+    console.log("✨ Portal fusionado: barrera desactivada, glitch apagado y portal fuera de escena");
 }
-
-
 
 
 
@@ -3283,7 +3455,8 @@ class Ray {
 function resetGame() {
     trapped = false;
     enableMovementAndJump = true;
-    
+    tarotOpened = false; 
+
     const box = document.getElementById('wooden-box');
     const asciiArt = document.getElementById('ascii-art');
     
@@ -3337,26 +3510,35 @@ document.addEventListener('keydown', function(event) {
 });
 
 
-
 // Agregar esta variable global con el audio del glitch
 let glitchVoice = new Audio('voz.mp3');
 glitchVoice.volume = 2.5;
 
-// Modificar triggerPortalGlitch para reproducir el audio
+// Modificar triggerPortalGlitch para NO disparar si ya hay aura/glow/fusión
 function triggerPortalGlitch() {
+    // si ya está fusionado o el personaje tiene aura / está iluminado,
+    // NO volvemos a disparar glitch
+    const hasGlow = window.asciiArtElement && asciiArtElement.classList.contains('glow');
+
+    if (portalUnlocked || characterHasAura || hasGlow) {
+        console.log("🔕 Glitch deshabilitado: portal fusionado / aura activa");
+        return;
+    }
+
     if (!audioCtx) {
         startAudioContext();
     }
     if (!audioCtx || !gainNode) return;
 
+    // si ya hay glitch corriendo, no disparamos otro
     if (window.portalBreak) return;
 
     window.portalBreak = true;
     portalBreakFrames = 0;
 
-    // Activar aura intensa en la foto
+    // Activar aura intensa en la foto (solo si está visible)
     const portalImg = document.getElementById('portal-img');
-    if (portalImg) {
+    if (portalImg && portalImg.style.display !== 'none') {
         portalImg.classList.add('glitch-active');
     }
 
@@ -3374,7 +3556,6 @@ function triggerPortalGlitch() {
     // Glitch visual
     startGlitch();
 }
-
 
 
 
@@ -3591,6 +3772,83 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchTitle, 70); // prueba 50–120 ms para afinar
 });
 
+
+
+function silenciarTodoAudio() {
+    console.log("🔇 Silenciando todo el audio por cambio de pestaña/página");
+
+    // Web Audio (mundo ASCII + letras + ruido + sinte MIDI)
+    if (audioCtx) {
+        try {
+            // apagamos de forma suave
+            if (gainNode) {
+                gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+                gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+            }
+            if (lettersGain) {
+                lettersGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                lettersGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+            }
+            if (whiteNoiseGain) {
+                whiteNoiseGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                whiteNoiseGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+            }
+
+            // sinte MIDI
+            if (midiMasterGain) {
+                midiMasterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                midiMasterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+            }
+
+            // opción extra: suspender el contexto completo
+            audioCtx.suspend();
+        } catch (e) {
+            console.log("Error silenciando WebAudio:", e);
+        }
+    }
+
+    // Ruido blanco
+    if (whiteNoiseSource) {
+        try {
+            whiteNoiseSource.stop();
+            whiteNoiseSource.disconnect();
+        } catch (e) {}
+        whiteNoiseSource = null;
+        ruidoBlancoActivo = false;
+    }
+
+    // HTML5 <audio> que estás usando
+    try {
+        if (introAudio) {
+            introAudio.pause();
+            introAudio.currentTime = 0;
+        }
+    } catch (e) {}
+
+    try {
+        if (audioSol) {
+            audioSol.pause();
+            audioSol.currentTime = 0;
+            solActivo = false;
+        }
+    } catch (e) {}
+
+    try {
+        if (audioLuna) {
+            audioLuna.pause();
+            audioLuna.currentTime = 0;
+            lunaActiva = false;
+        }
+    } catch (e) {}
+
+    try {
+        if (glitchVoice) {
+            glitchVoice.pause();
+            glitchVoice.currentTime = 0;
+        }
+    } catch (e) {}
+
+}
 
 
 
