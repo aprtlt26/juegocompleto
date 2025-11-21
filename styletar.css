@@ -5,8 +5,9 @@ body {
         font-size: 11px   ;
     margin: 0;
     padding: 0;
-    min-height: 100vh;       /* La página ocupa como mínimo toda la altura */
+    min-height: 80%;       /* La página ocupa como mínimo toda la altura */
     height: auto;            /* Deja que crezca si el contenido es mayor */
+     max-width:auto;
     overflow-x: hidden;      /* Sin scroll horizontal */
     overflow-y: auto;        /* Scroll vertical normal */
 }
@@ -1324,9 +1325,9 @@ input[type="range"]:focus {
       width: 40px;
       height: 40px;
       background: rgba(0, 0, 0, 0.127);
-      border: 2px solid #a1ff4e;
+      border: 2px solid #363636;
       border-radius: 50%;
-      box-shadow: 0 0 8px rgba(190, 255, 78, 0.8), 0 0 16px rgba(211, 255, 78, 0.6);
+      box-shadow: 0 0 8px rgba(172, 172, 171, 0.8), 0 0 16px rgba(211, 255, 78, 0.6);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -1341,7 +1342,7 @@ input[type="range"]:focus {
     #helpBtn svg {
       width: 24px;
       height: 24px;
-      stroke: #dcff4e;
+      stroke: #e5fe81;
       fill: none;
     }
     /* Overlay y Modal de ayuda */
@@ -1382,3 +1383,25 @@ input[type="range"]:focus {
       text-decoration: none;
       font-weight: bold;
     }
+
+    #ascii-art.character-aura {
+    filter: drop-shadow(0 0 15px #f2fe99) contrast(1.4) brightness(1.2);
+    transition: filter 0.15s ease;
+}
+
+/* AURA INTENSA DEL PERSONAJE DESPUÉS DE ATRAVESAR EL PORTAL */
+#ascii-art.character-aura {
+    /* brillo fuerte alrededor del texto */
+    text-shadow:
+        0 0 4px  #ff1414,
+        0 0 8px  #fe8d0b,
+        0 0 14px #ff7124,
+        0 0 22px #ffc400,
+        0 0 32px #0644ff;
+
+    /* un poco de trazo para que se vea la silueta */
+    -webkit-text-stroke: 0.6px rgba(255, 255, 255, 0.8);
+
+    /* NO dependemos de filter, para que el glitch no la mate */
+}
+
