@@ -16,11 +16,9 @@
         <meta property="og:description" content="PSYCHE GAME">
         <meta property="og:image" content="lemt.jpeg">
         <link rel="stylesheet" href="styletar.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.2/p5.min.js"></script>
 
-<!-- Asegúrate de tener esto en el HTML -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.2/p5.min.js"></script>
-
-
+  
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
@@ -30,9 +28,8 @@
 
 
       <div id="reveal-mask"></div>
-<!-- VERSIÓN MINIMALISTA -->
- 
-  <!-- Alerta de Trampa -->
+
+
 <div id="trap-alert" class="help-modal" style="display: none;">
     <div class="help-content">
         <div class="help-title">🚨 ¡HAS SIDO ATRAPADO! 🚨</div>
@@ -101,8 +98,8 @@
         titleEl.textContent = out;
     }
 
-    // refresco rápido → sensación de movimiento
-    setInterval(glitchTitle, 120); // prueba 50–120 ms para afinar
+   
+    setInterval(glitchTitle, 120); 
 });
 
 </script>
@@ -110,19 +107,37 @@
           <p style="color: #a2ff00; font-size: 13px; margin-top: 20px;">
           <b>  "Arcano del Bosque Obscuro" </b>
 
-            <p style="font-size: 9px;"> [Interactive Web - Computer Music - controlMIDI]</p>
-            <div></div>
+      <p style="font-size: 9px;"> [Interactive Web - Computer Music - controlMIDI]</p>
+      
         </p>
+
+<button
+onclick="event.stopPropagation(); window.open('https://tarotsoundaprtlt.netlify.app/', '_blank');"
+  style="
+    margin-top: 8px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-family: monospace;
+    background-color: #000;
+    color: #a2ff00;
+    border: 1px solid #a2ff00;
+    cursor: pointer;
+  "
+>
+ Barajar con fecha 
+</button>
+
+        
+      <a href="http://" target="_blank" rel="noopener noreferrer"></a>
         <p>----------------------------------------</p>
         <h2> CLIC - ACTIVA - SONIDO</h2>
-        <p> <b> - Doble clic [- 1/2 FQ-M] </b></p>
-        <P> <b> - ESP -> Whitenoise. </b></P>
-         <P><b> - Salir de la caja. Luna-Sol-cat -> </b></P>
-              <P> <b> * MIDI control * </b></P>
-                 <P> <b> - Caminar C, Bb, C, Eb </b></P>
+        <p> <b> - Doble clic [- 1/2 FQ-M] </b> </p>
+        <P> <b> - ESP -> Whitenoise. </b> </P>
+        <P> <b> - Salir de la caja. Luna-Sol-cat -> </b> </P>
+        <P> <b> * MIDI control * </b> </P>
+        <P> <b> - Caminar C, Bb, C, Eb </b> </P>
         <p>----------------------------------------</p>
 
-        <a   href="https://alfonsopretelt.com/" target="_blank" rel="noopener noreferrer">  <p  style="color: beige;" > <b>APRTLT® </b></p></a>
       
     </div>
 </div>
@@ -135,7 +150,6 @@
 
 <body>
 
-<!-- PORTAL GLITCH OVERLAY -->
 <div id="portal-glitch-overlay">
   <div class="portal-slice left-slice"></div>
   <div class="portal-slice right-slice"></div>
@@ -705,9 +719,6 @@
 
     <p style=" font-size: 16x;">Capitulo 1: Encuentro con el Daemon en el bosque obscuro.</h3>
   
-
-
-
    <p style="font-size: 11x; font-family: Fira Code, Menlo, Monaco, Consolas, monospace"> Esta es una composición web-interactiva (computer-music) cuyo simbolismo gráfico y visual está basado en un evento real mezclado con iconografía del tarot Marselles y otras barajas, {tecnología espiritual en el contexto del ocultismo autentico}, al cual he dedicado más de 15 años de estudio profundo, tiempo conmemorado y celebrado en esta pieza interactiva.
 
    Posterior a una toma de ayahuasca en Colombia en el año 2022 (la cuarta en mis 38 años de vida). En plena vigilia, con los ojos cerrados, me encontré consciente en un plano obscuro donde solo había un árbol y un ser con extremidades, forma y cara extraña, este ser me habló... Le habló a mi mente, en forma telepática y con voz grueza dijo: (Cada quien hace lo que quiere con su presa/pereza); la última palabra fue ambigua para mí hasta el día de hoy. En ese instante sentí verdadero miedo y desorientación; entonces el ser me encerró en una caja de madera con una tapa muy pesada. Solo pude salir siendo consciente de lo que estaba pasand pues no era un sueño, sino una experiencia en vigilia, en otro plano dimensional. Al cabo de unos segundos pude salir y retornar a este plano desde donde escribo estas letras y diseño este escenario interactivo virtual; a pesar de mi temor, a pesar de mi doble interpretación de sus últimas sílabas,  su mensaje fue muy claro. 
@@ -771,7 +782,6 @@
         <label>R</label><input type="range" id="env-release" min="0.01"  max="2"   step="0.01"  value="0.35">
     </div>
 
-  <!-- ================== PANEL AUDIO MUNDO ASCII ================== -->
 <div id="world-audio-panel">
   <h3>Mundo Arcano</h3>
 
@@ -805,7 +815,7 @@
     <input type="range" id="moon-pitch" min="0.5" max="2" step="0.01" value="1">
   </div>
 </div>
-<!-- ============================================================= -->
+
 
 </div>
  <script src="juegscritp.js"></script>
@@ -814,6 +824,10 @@
 </body>
 
 </html>
+
+
+
+
 
 
 
