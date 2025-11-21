@@ -42,6 +42,7 @@
             <li>SOL (Tecla S ambient)</li>
             <li>LUNA (Tecla L ambient)</li>
             <li>Whitenoise (ESPACIO)</li>
+            
         </ul>
         <button class="start-button" onclick="cerrarTrapAlert()">OK</button>
     </div>
@@ -53,17 +54,72 @@
 
            <p>----------------------------------------</p>
 
+           <pre id="ascii-title">
+████████╗ █████╗ ██████╗  ██████╗ ████████╗    ███████╗██╗   ██╗███╗   ██╗████████╗██╗  ██╗███████╗███████╗██╗███████╗███████╗██████╗ 
+╚══██╔══╝██╔══██╗██╔══██╗██╔═══██╗╚══██╔══╝    ██╔════╝╚██╗ ██╔╝████╗  ██║╚══██╔══╝██║  ██║██╔════╝██╔════╝██║╚══███╔╝██╔════╝██╔══██╗
+   ██║   ███████║██████╔╝██║   ██║   ██║       ███████╗ ╚████╔╝ ██╔██╗ ██║   ██║   ███████║█████╗  ███████╗██║  ███╔╝ █████╗  ██████╔╝
+   ██║   ██╔══██║██╔══██╗██║   ██║   ██║       ╚════██║  ╚██╔╝  ██║╚██╗██║   ██║   ██╔══██║██╔══╝  ╚════██║██║ ███╔╝  ██╔══╝  ██╔══██╗
+   ██║   ██║  ██║██║  ██║╚██████╔╝   ██║       ███████║   ██║   ██║ ╚████║   ██║   ██║  ██║███████╗███████║██║███████╗███████╗██║  ██║
+   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝
+</pre>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const titleEl = document.getElementById('ascii-title');
+    if (!titleEl) return;
+
+    const baseText = titleEl.textContent;  
+    const glitchChars = ['█', '▓', '▒', '░', '░', '░', ',', 'w', 's', '░', '░' ]; 
+
+    function glitchTitle() {
+        let out = '';
+
+        for (let i = 0; i < baseText.length; i++) {
+            const ch = baseText[i];
+
+
+            if (ch === '\n') {
+                out += '\n';
+                continue;
+            }
+
+
+            const mutate = Math.random() < 0.09; 
+            if (!mutate) {
+                out += ch;
+            } else {
+            
+                if (ch === ' ') {
+                    out += ' ';
+                } else {
+                    out += glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }
+            }
+        }
+
+        titleEl.textContent = out;
+    }
+
+    // refresco rápido → sensación de movimiento
+    setInterval(glitchTitle, 120); // prueba 50–120 ms para afinar
+});
+
+</script>
+
           <p style="color: #a2ff00; font-size: 13px; margin-top: 20px;">
           <b>  "Arcano del Bosque Obscuro" </b>
 
-            <p style="font-size: 9px;"> [Interactive Web - Computer Music]</p>
+            <p style="font-size: 9px;"> [Interactive Web - Computer Music - controlMIDI]</p>
             <div></div>
         </p>
         <p>----------------------------------------</p>
         <h2> CLIC - ACTIVA - SONIDO</h2>
-        <p> <b> Doble clic [- 1/2 FQ-M] </b></p>
-        <P> <b> Barra esp -> Whitenoise. </b></P>
-         <P><b> Clic Luna-Sol-cat -> Salir de la caja. </b></P>
+        <p> <b> - Doble clic [- 1/2 FQ-M] </b></p>
+        <P> <b> - ESP -> Whitenoise. </b></P>
+         <P><b> - Salir de la caja. Luna-Sol-cat -> </b></P>
+              <P> <b> * MIDI control * </b></P>
+                 <P> <b> - Caminar C, Bb, C, Eb </b></P>
         <p>----------------------------------------</p>
 
         <a   href="https://alfonsopretelt.com/" target="_blank" rel="noopener noreferrer">  <p  style="color: beige;" > <b>APRTLT® </b></p></a>
@@ -647,7 +703,7 @@
 <section>
 
 
-    <h3  style=" font-size: 16x;">Capitulo 1: Encuentro con el Daemon en el bosque obscuro.</h3>
+    <p style=" font-size: 16x;">Capitulo 1: Encuentro con el Daemon en el bosque obscuro.</h3>
   
 
 
@@ -666,7 +722,6 @@
 
 
 </div>
- <script src="juegscritp.js"></script>
 
 
   
@@ -753,9 +808,51 @@
 <!-- ============================================================= -->
 
 </div>
+ <script src="juegscritp.js"></script>
 
+ <script src="walk.js"></script>
 </body>
+
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
