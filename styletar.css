@@ -1041,7 +1041,7 @@ canvas,
 
 /* cuando se active desde JS */
 #reveal-mask.is-revealing {
-    animation: revealDown 7.0s ease-out forwards;
+    animation: revealDown 10.0s ease-out forwards;
 }
 
 
@@ -1294,4 +1294,28 @@ input[type="range"]:focus {
 #moon-pitch::-webkit-slider-thumb {
     background: #66ccff;
     box-shadow: 0 0 10px rgba(102, 204, 255, 0.8);
+}
+
+
+#ascii-art .zapatos {
+    color: red;
+}
+
+#ascii-title {
+    color: #000000;
+    font-family: monospace;
+    white-space: pre;
+    font-size: 4px;       /* súbelo un poco para que se vea mejor */
+    line-height: 1;
+
+    /* quita esto, no lo necesitas:
+    text-decoration: dashed;
+    text-decoration: #000;
+    */
+
+    /* SOMBRA / GLOW VERDE BIEN MARCADA */
+    text-shadow:
+        0 0 2px #f4f4f4,
+        0 0 4px #bdbdbd,
+        0 0 8px #a6ff00;
 }
