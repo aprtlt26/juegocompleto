@@ -832,35 +832,32 @@ function midiClick(id) {
     if (el) el.click();
 }
 
+
 // ======================================================
-//  NOTE ON: crea voz nueva + letra ASCII
+//  NOTE ON: crea voz nueva + letra ASCII + arcano
 // ======================================================
 function onMIDINoteOn(note, velocity, channel) {
     console.log("🎹 NOTE ON - Nota:", note, "Vel:", velocity, "Canal:", channel);
 
-    // ====== PADS ESPECIALES DEL JUEGO ======
+    // PADS ESPECIALES DEL JUEGO (sol/luna/gato/reset)
     if (note === PAD_SOL) {
-        console.log("🔥 Activando Sol desde MIDI");
         document.getElementById('ascii-sol')?.click();
         return;
     }
     if (note === PAD_LUNA) {
-        console.log("🌙 Activando Luna desde MIDI");
         document.getElementById('ascii-luna')?.click();
         return;
     }
     if (note === PAD_GATO) {
-        console.log("🐱 Activando Gato desde MIDI");
         document.getElementById('ascii-cat')?.click();
         return;
     }
     if (note === PAD_RESET) {
-        console.log("🔁 RESET JUEGO desde MIDI");
         if (typeof resetGame === 'function') resetGame();
         return;
     }
 
-    // ====== SINTETIZADOR ======
+    // AUDIO
     if (!audioCtx) {
         if (typeof startAudioContext === 'function') {
             startAudioContext();
@@ -879,9 +876,10 @@ function onMIDINoteOn(note, velocity, channel) {
     if (midiVoices[note]) {
         try {
             const v = midiVoices[note];
-            v.gain.gain.cancelScheduledValues(audioCtx.currentTime);
-            v.gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            v.osc.stop(audioCtx.currentTime + 0.01);
+            const now = audioCtx.currentTime;
+            v.gain.gain.cancelScheduledValues(now);
+            v.gain.gain.setValueAtTime(0, now);
+            v.osc.stop(now + 0.01);
             v.osc.disconnect();
             v.gain.disconnect();
         } catch (e) {}
@@ -899,29 +897,34 @@ function onMIDINoteOn(note, velocity, channel) {
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
         // ====== ADSR ======
-        // ====== ADSR ======
         const v   = velocity / 127;
         const now = audioCtx.currentTime;
-
-        // pico algo por debajo de 1.0 para dejar margen al compresor
-        const peak = v * 0.7;  // 70% de la velocidad → menos clip
+        const peak = v * 0.7;  // deja margen al compresor
 
         const a = Math.max(0.001, envAttack);
         const d = Math.max(0.001, envDecay);
         const s = Math.max(0.0, Math.min(envSustain, 1.0));
 
-
         gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(0.0, now);                       // inicio
-        gain.gain.linearRampToValueAtTime(peak, now + a);         // Attack
-        gain.gain.linearRampToValueAtTime(peak * s, now + a + d); // Decay → Sustain
+        gain.gain.setValueAtTime(0.0, now);
+        gain.gain.linearRampToValueAtTime(peak, now + a);
+        gain.gain.linearRampToValueAtTime(peak * s, now + a + d);
 
         osc.connect(gain);
         gain.connect(midiGain);
 
         osc.start();
 
+        // 🔹 Registrar la voz ANTES de chequear el acorde
         midiVoices[note] = { osc, gain };
+
+        // 🔹 Melodía arcano (nota por nota)
+        if (typeof registrarNotaArcano === 'function') {
+            registrarNotaArcano(note);
+        }
+
+        // 🔹 Estado del acorde completo
+        actualizarEstadoAcordeArcano();
 
         // Letra ASCII
         const ch = noteToAsciiKey(noteWithTranspose);
@@ -936,22 +939,27 @@ function onMIDINoteOn(note, velocity, channel) {
 }
 
 // ======================================================
-//  NOTE OFF: APAGA Y ELIMINA LA VOZ
+//  NOTE OFF: APAGA Y ELIMINA LA VOZ + actualiza acorde
 // ======================================================
 function onMIDINoteOff(note, velocity, channel) {
     console.log("🎹 NOTE OFF - Nota:", note, "Vel:", velocity, "Canal:", channel);
 
-    if (!midiVoices[note] || !audioCtx) {
+    if (!audioCtx) {
+        actualizarEstadoAcordeArcano();
         return;
     }
 
     const voice = midiVoices[note];
-    const now   = audioCtx.currentTime;
+    if (!voice) {
+        actualizarEstadoAcordeArcano();
+        return;
+    }
+
+    const now = audioCtx.currentTime;
 
     try {
         const r = Math.max(0.01, envRelease);
 
-        // comenzamos release desde el valor actual
         const currentVal = voice.gain.gain.value;
         voice.gain.gain.cancelScheduledValues(now);
         voice.gain.gain.setValueAtTime(currentVal, now);
@@ -968,112 +976,97 @@ function onMIDINoteOff(note, velocity, channel) {
     } catch (e) {}
 
     delete midiVoices[note];
+
+    // 🔹 MUY IMPORTANTE: después de soltar una nota, re-evaluar el acorde
+    actualizarEstadoAcordeArcano();
 }
 
-    try {
-        const osc  = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
 
-        const noteWithTranspose = note + midiTranspose;
-        const freq = midiNoteToFreq(noteWithTranspose);
+// ====== MELODÍA ARCANO: F – Bb – C – Eb ======
+// pitch-classes: C=0, C#=1, D=2, Eb=3, E=4, F=5, F#=6, G=7, G#=8, A=9, Bb=10, B=11
+// La MELODÍA secuencial sigue siendo F–Bb–C–Eb:
+const ARCANO_PITCH_SEQ = [5, 10, 0, 3]; // F, Bb, C, Eb (clases de tono)
 
-        osc.type = currentWaveform;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+// Pero el ACORDE que tú estás tocando es: C, Bb, C, Eb → {0, 10, 3}
+const ARCANO_CHORD_PCS = [0, 10, 3];    // C – Bb – Eb (clases de tono)
 
-        // ====== ADSR ======
-        const v   = velocity / 127;
-        const now = audioCtx.currentTime;
-        const peak = v;
+let arcanoMelodyStep   = 0;
 
-        const a = Math.max(0.001, envAttack);
-        const d = Math.max(0.001, envDecay);
-        const s = Math.max(0.0, Math.min(envSustain, 1.0));
+// ====== ESTADO DEL ACORDE COMPLETO ======
+let arcanoChordActive  = false;
+let arcanoWalkInterval = null;
 
-        gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(0.0, now);                       // inicio
-        gain.gain.linearRampToValueAtTime(peak, now + a);         // A
-        gain.gain.linearRampToValueAtTime(peak * s, now + a + d); // D → S
 
-        osc.connect(gain);
-        gain.connect(midiGain);
+// MELODÍA (nota por nota, si quieres el “trigger especial”)
+function registrarNotaArcano(note) {
+    const pc     = note % 12;
+    const target = ARCANO_PITCH_SEQ[arcanoMelodyStep];
 
-        osc.start();
+    if (pc === target) {
+        arcanoMelodyStep++;
+        if (arcanoMelodyStep >= ARCANO_PITCH_SEQ.length) {
+            console.log("✨ MELODÍA ARCANO DETECTADA (F – Bb – C – Eb)");
+            arcanoMelodyStep = 0;
 
-        midiVoices[note] = { osc, gain };
-
-        // Letra ASCII
-        const ch = noteToAsciiKey(noteWithTranspose);
-        if (typeof window.drawMidiLetter === 'function') {
-            window.drawMidiLetter(ch);
+            if (typeof activarCaminoArcano === 'function') {
+                activarCaminoArcano();
+            } else {
+                enableMovementAndJump = true;
+                trapped = false;
+                console.log("CAMINO ARCANO ACTIVADO → movimiento liberado");
+            }
         }
-
-        console.log("✅ VOZ MIDI creada:", note, "freq:", Math.round(freq), "Hz");
-    } catch (error) {
-        console.log("❌ ERROR creando voz MIDI:", error);
+    } else if (pc === ARCANO_PITCH_SEQ[0]) {
+        arcanoMelodyStep = 1;
     }
-
-
-function onMIDINoteOff(note, velocity, channel) {
-    console.log("🎹 NOTE OFF - Nota:", note, "Vel:", velocity, "Canal:", channel);
-
-    if (!midiVoices[note] || !audioCtx) {
-        return;
-    }
-
-    const voice = midiVoices[note];
-    const now   = audioCtx.currentTime;
-
-    try {
-        const r = Math.max(0.01, envRelease);
-gainNode.gain.cancelScheduledValues(now);
-        // empezamos release desde el valor actual
-        const currentVal = voice.gain.gain.value;
-        voice.gain.gain.setValueAtTime(currentVal, now);
-        voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + r);
-
-        voice.osc.stop(now + r + 0.05);
-    } catch (e) {
-        try { voice.osc.stop(now + 0.05); } catch (_) {}
-    }
-
-    try {
-        voice.osc.disconnect();
-        voice.gain.disconnect();
-    } catch (e) {}
-
-    delete midiVoices[note];
 }
 
-// ======================================================
-//  NOTE OFF: APAGA Y ELIMINA LA VOZ SÍ O SÍ
-// ======================================================
-function onMIDINoteOff(note, velocity, channel) {
-    console.log("🎹 NOTE OFF - Nota:", note, "Vel:", velocity, "Canal:", channel);
+// DETECTOR DE ACORDE COMPLETO (todas las notas pisadas)
+// DETECTOR DE ACORDE COMPLETO (todas las notas pisadas)
+function actualizarEstadoAcordeArcano() {
+    const activePCs = new Set(
+        Object.keys(midiVoices).map(k => (parseInt(k, 10) % 12))
+    );
 
-    if (!midiVoices[note] || !audioCtx) {
-        return;
+    // Ahora el acorde es C–Bb–Eb → ARCANO_CHORD_PCS
+    const allPressed = ARCANO_CHORD_PCS.every(pc => activePCs.has(pc));
+
+    if (allPressed && !arcanoChordActive) {
+        arcanoChordActive = true;
+        console.log("🎯 ACORDE ARCANO COMPLETO (C–Bb–Eb)");
+        startArcanoWalk();
+    } else if (!allPressed && arcanoChordActive) {
+        arcanoChordActive = false;
+        console.log("⛔ ACORDE ARCANO SOLTADO");
+        stopArcanoWalk();
     }
-
-    const voice = midiVoices[note];
-    const now   = audioCtx.currentTime;
-
-    try {
-        // pequeño release para no hacer "click"
-        voice.gain.gain.cancelScheduledValues(now);
-        voice.gain.gain.setTargetAtTime(0, now, 0.03);
-    } catch (e) {}
-
-    try {
-        voice.osc.stop(now + 0.08);
-    } catch (e) {}
-
-    try {
-        voice.osc.disconnect();
-        voice.gain.disconnect();
-    } catch (e) {}
-
-    delete midiVoices[note];
 }
+
+function startArcanoWalk() {
+    if (arcanoWalkInterval) return;
+
+    arcanoWalkInterval = setInterval(() => {
+        // El acorde puede mover aunque enableMovementAndJump sea false,
+        // pero si está atrapado en la caja, no se mueve.
+        if (trapped) return;
+        arcanoStepForward();
+    }, 200); // velocidad de pasos (ajusta 150–250 ms a gusto)
+}
+
+
+function stopArcanoWalk() {
+    if (arcanoWalkInterval) {
+        clearInterval(arcanoWalkInterval);
+        arcanoWalkInterval = null;
+    }
+}
+
+// PASO HACIA ADELANTE (simula ArrowRight)
+function arcanoStepForward() {
+    const ev = new KeyboardEvent('keydown', { key: 'ArrowRight' });
+    document.dispatchEvent(ev);
+}
+
 
 
 // ======================================================
@@ -1191,69 +1184,6 @@ function onMIDICC(cc, value, channel) {
 }
 
 
-// ======================================================
-//  ACORDE DE MÁSCARA (MANTENGO TU LÓGICA, SOLO USAMOS midiNoteToFreq432)
-// ======================================================
-let maskChordVoices = [];
-let maskRevealStartTime = null;
-const MASK_ANIM_DURATION = 8.0;
-const MASK_CHORD_NOTES = [78, 52, 55, 93, 62, 64, 82]; // Cmaj6/9
-
-function playMaskChord() {
-    if (!audioCtx) return;
-
-    stopMaskChord();
-
-    const now = audioCtx.currentTime;
-    maskRevealStartTime = now;
-
-    MASK_CHORD_NOTES.forEach((n, i) => {
-        const osc  = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        const freqStart = midiNoteToFreq(n);
-        const freqEnd   = midiNoteToFreq432(n);
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freqStart, now);
-        osc.frequency.linearRampToValueAtTime(freqEnd, now + MASK_ANIM_DURATION);
-
-        gain.gain.setValueAtTime(0, now);
-
-        const attack       = 1.5;
-        const sustainLevel = 0.08;
-        const releaseStart = MASK_ANIM_DURATION - 1.5;
-
-        gain.gain.linearRampToValueAtTime(sustainLevel, now + attack);
-        gain.gain.setValueAtTime(sustainLevel, now + releaseStart);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + MASK_ANIM_DURATION + 0.6);
-
-        gain.connect(audioCtx.destination);
-        osc.connect(gain);
-        osc.start(now);
-        osc.stop(now + MASK_ANIM_DURATION + 1.0);
-
-        maskChordVoices.push({ osc, gain });
-    });
-
-    console.log("🎹 ACORDE INICIAL REPRODUCIENDO (volumen bajo)");
-}
-
-function stopMaskChord() {
-    if (!audioCtx) return;
-    const now = audioCtx.currentTime;
-
-    maskChordVoices.forEach(v => {
-        try {
-            v.gain.gain.cancelScheduledValues(now);
-            v.gain.gain.linearRampToValueAtTime(0, now + 0.8);
-            v.osc.stop(now + 1.0);
-        } catch (e) {}
-    });
-
-    maskChordVoices = [];
-    maskRevealStartTime = null;
-}
 
 // ======================================================
 //  BOTÓN DE PÁNICO: DESBLOQUEAR SINTETIZADOR (tecla D)
@@ -2743,7 +2673,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const asciiArt    = document.getElementById('ascii-art');
     const portalImg   = document.getElementById('portal-img');
-    const portalVoice = new Audio('voz_portal.mp3');
+    const portalVoice = new Audio('voz.mp3');
     portalVoice.volume = 1.0;
 
     let position = {
@@ -2767,7 +2697,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // timer de trampa
     let trapTimeoutStarted  = false;
     let trapTimeoutId       = null;
-
 
     function moveCharacter(event) {
         if (!enableMovementAndJump) return;
@@ -2827,11 +2756,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // el control de distancias y tiempos se hace en checkPortalDistance()
     }
 
+
     function updatePosition() {
         asciiArt.style.top  = `${position.top}px`;
         asciiArt.style.left = `${position.left}px`;
         checkPortalDistance();
     }
+
+
 
 
 
@@ -3618,6 +3550,46 @@ document.addEventListener('keydown', function(event) {
 });
 
 
+document.addEventListener('DOMContentLoaded', () => {
+    const titleEl = document.getElementById('ascii-title');
+    if (!titleEl) return;
+
+    const baseText = titleEl.textContent;  // texto original
+    const glitchChars = ['█', '▓', '▒', '░', ' ', ' ']; // caracteres de sustitución
+
+    function glitchTitle() {
+        let out = '';
+
+        for (let i = 0; i < baseText.length; i++) {
+            const ch = baseText[i];
+
+            // preserva saltos de línea y espacios para no deformar el bloque
+            if (ch === '\n') {
+                out += '\n';
+                continue;
+            }
+
+            // probabilidad de “mutar” el carácter
+            const mutate = Math.random() < 0.08; // 8% de los chars cambian cada frame
+
+            if (!mutate) {
+                out += ch;
+            } else {
+                // solo glitchea si no es un espacio vacío
+                if (ch === ' ') {
+                    out += ' ';
+                } else {
+                    out += glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }
+            }
+        }
+
+        titleEl.textContent = out;
+    }
+
+    // refresco rápido → sensación de movimiento
+    setInterval(glitchTitle, 70); // prueba 50–120 ms para afinar
+});
 
 
 
