@@ -1087,24 +1087,47 @@ function onMIDINoteOff(note, velocity, channel) {
     // 🔹 MUY IMPORTANTE: después de soltar una nota, re-evaluar el acorde
     actualizarEstadoAcordeArcano();
 }
+// ======================================================
+//  ARCANO: MELODÍA + ACORDES (4 DIRECCIONES)
+// ======================================================
 
-
-// ====== MELODÍA ARCANO: F – Bb – C – Eb ======
-// pitch-classes: C=0, C#=1, D=2, Eb=3, E=4, F=5, F#=6, G=7, G#=8, A=9, Bb=10, B=11
-// La MELODÍA secuencial sigue siendo F–Bb–C–Eb:
+// MELODÍA: F–Bb–C–Eb (solo para activar el “camino arcano”)
 const ARCANO_PITCH_SEQ = [5, 10, 0, 3]; // F, Bb, C, Eb (clases de tono)
 
-// Pero el ACORDE que tú estás tocando es: C, Bb, C, Eb → {0, 10, 3}
-const ARCANO_CHORD_PCS = [0, 10, 3];    // C – Bb – Eb (clases de tono)
+// 1) ACORDE ORIGINAL → DERECHA: C–Bb–Eb
+// C=0, Bb=10, Eb=3
+const ARCANO_CHORD_PCS_RIGHT = [0, 10, 3];
 
-let arcanoMelodyStep   = 0;
+// 2) ACORDE ARRIBA → F–A–C
+// F=5, A=9, C=0
+const ARCANO_CHORD_PCS_UP = [5, 9, 0];
 
-// ====== ESTADO DEL ACORDE COMPLETO ======
-let arcanoChordActive  = false;
-let arcanoWalkInterval = null;
+// 3) ACORDE ABAJO → F–G–Bb–C
+// F=5, G=7, Bb=10, C=0
+const ARCANO_CHORD_PCS_DOWN = [5, 7, 10, 0];
 
+// 4) ACORDE ATRÁS (IZQUIERDA) → Eb–F–G–Bb
+// Eb=3, F=5, G=7, Bb=10
+const ARCANO_CHORD_PCS_BACK = [3, 5, 7, 10];
 
-// MELODÍA (nota por nota, si quieres el “trigger especial”)
+let arcanoMelodyStep = 0;
+
+// Estado de acordes
+let arcanoChordActive      = false;  // DERECHA (C–Bb–Eb) → lo mantenemos
+let arcanoWalkInterval     = null;
+
+let arcanoUpChordActive    = false;  // ARRIBA (F–A–C)
+let arcanoUpWalkInterval   = null;
+
+let arcanoDownChordActive  = false;  // ABAJO (F–G–Bb–C)
+let arcanoDownWalkInterval = null;
+
+let arcanoBackChordActive  = false;  // IZQUIERDA (Eb–F–G–Bb)
+let arcanoBackWalkInterval = null;
+
+// ------------------------------------------------------
+//  MELODÍA (nota por nota, NO toca los acordes)
+// ------------------------------------------------------
 function registrarNotaArcano(note) {
     const pc     = note % 12;
     const target = ARCANO_PITCH_SEQ[arcanoMelodyStep];
@@ -1112,7 +1135,7 @@ function registrarNotaArcano(note) {
     if (pc === target) {
         arcanoMelodyStep++;
         if (arcanoMelodyStep >= ARCANO_PITCH_SEQ.length) {
-            console.log("✨ MELODÍA ARCANO DETECTADA (F – Bb – C – Eb)");
+            console.log("✨ MELODÍA ARCANO DETECTADA (F–Bb–C–Eb)");
             arcanoMelodyStep = 0;
 
             if (typeof activarCaminoArcano === 'function') {
@@ -1124,42 +1147,87 @@ function registrarNotaArcano(note) {
             }
         }
     } else if (pc === ARCANO_PITCH_SEQ[0]) {
+        // si vuelve a empezar por F, retomamos desde paso 1
         arcanoMelodyStep = 1;
+    } else {
+        // cualquier otra nota rompe la secuencia
+        arcanoMelodyStep = 0;
     }
 }
 
-// DETECTOR DE ACORDE COMPLETO (todas las notas pisadas)
-// DETECTOR DE ACORDE COMPLETO (todas las notas pisadas)
+// ------------------------------------------------------
+//  DETECTOR DE ACORDES (4 direcciones)
+// ------------------------------------------------------
 function actualizarEstadoAcordeArcano() {
+    // set de pitch-classes activos (nota % 12)
     const activePCs = new Set(
         Object.keys(midiVoices).map(k => (parseInt(k, 10) % 12))
     );
 
-    // Ahora el acorde es C–Bb–Eb → ARCANO_CHORD_PCS
-    const allPressed = ARCANO_CHORD_PCS.every(pc => activePCs.has(pc));
+    // ===== 1) DERECHA (ACORDE ORIGINAL C–Bb–Eb) =====
+    const rightAllPressed = ARCANO_CHORD_PCS_RIGHT.every(pc => activePCs.has(pc));
 
-    if (allPressed && !arcanoChordActive) {
+    if (rightAllPressed && !arcanoChordActive) {
         arcanoChordActive = true;
-        console.log("🎯 ACORDE ARCANO COMPLETO (C–Bb–Eb)");
+        console.log("🎯 ACORDE ARCANO COMPLETO (C–Bb–Eb) → caminar derecha");
         startArcanoWalk();
-    } else if (!allPressed && arcanoChordActive) {
+    } else if (!rightAllPressed && arcanoChordActive) {
         arcanoChordActive = false;
-        console.log("⛔ ACORDE ARCANO SOLTADO");
+        console.log("⛔ ACORDE ARCANO SOLTADO (C–Bb–Eb)");
         stopArcanoWalk();
+    }
+
+    // ===== 2) ARRIBA (F–A–C) =====
+    const upAllPressed = ARCANO_CHORD_PCS_UP.every(pc => activePCs.has(pc));
+
+    if (upAllPressed && !arcanoUpChordActive) {
+        arcanoUpChordActive = true;
+        console.log("⬆️ ACORDE VERTICAL (F–A–C) → subir personaje");
+        startArcanoUpWalk();
+    } else if (!upAllPressed && arcanoUpChordActive) {
+        arcanoUpChordActive = false;
+        console.log("⛔ ACORDE VERTICAL SOLTADO (F–A–C)");
+        stopArcanoUpWalk();
+    }
+
+    // ===== 3) ABAJO (F–G–Bb–C) =====
+    const downAllPressed = ARCANO_CHORD_PCS_DOWN.every(pc => activePCs.has(pc));
+
+    if (downAllPressed && !arcanoDownChordActive) {
+        arcanoDownChordActive = true;
+        console.log("⬇️ ACORDE ABAJO (F–G–Bb–C) → bajar personaje");
+        startArcanoDownWalk();
+    } else if (!downAllPressed && arcanoDownChordActive) {
+        arcanoDownChordActive = false;
+        console.log("⛔ ACORDE ABAJO SOLTADO (F–G–Bb–C)");
+        stopArcanoDownWalk();
+    }
+
+    // ===== 4) ATRÁS / IZQUIERDA (Eb–F–G–Bb) =====
+    const backAllPressed = ARCANO_CHORD_PCS_BACK.every(pc => activePCs.has(pc));
+
+    if (backAllPressed && !arcanoBackChordActive) {
+        arcanoBackChordActive = true;
+        console.log("⬅️ ACORDE ATRÁS (Eb–F–G–Bb) → mover personaje a la izquierda");
+        startArcanoBackWalk();
+    } else if (!backAllPressed && arcanoBackChordActive) {
+        arcanoBackChordActive = false;
+        console.log("⛔ ACORDE ATRÁS SOLTADO (Eb–F–G–Bb)");
+        stopArcanoBackWalk();
     }
 }
 
+// ------------------------------------------------------
+//  MOVIMIENTO HORIZONTAL DERECHA (C–Bb–Eb) → ArrowRight
+// ------------------------------------------------------
 function startArcanoWalk() {
     if (arcanoWalkInterval) return;
 
     arcanoWalkInterval = setInterval(() => {
-        // El acorde puede mover aunque enableMovementAndJump sea false,
-        // pero si está atrapado en la caja, no se mueve.
-        if (trapped) return;
+        if (trapped || !enableMovementAndJump) return;
         arcanoStepForward();
-    }, 200); // velocidad de pasos (ajusta 150–250 ms a gusto)
+    }, 200);
 }
-
 
 function stopArcanoWalk() {
     if (arcanoWalkInterval) {
@@ -1168,12 +1236,82 @@ function stopArcanoWalk() {
     }
 }
 
-// PASO HACIA ADELANTE (simula ArrowRight)
 function arcanoStepForward() {
     const ev = new KeyboardEvent('keydown', { key: 'ArrowRight' });
     document.dispatchEvent(ev);
 }
 
+// ------------------------------------------------------
+//  MOVIMIENTO VERTICAL ARRIBA (F–A–C) → ArrowUp
+// ------------------------------------------------------
+function startArcanoUpWalk() {
+    if (arcanoUpWalkInterval) return;
+
+    arcanoUpWalkInterval = setInterval(() => {
+        if (trapped || !enableMovementAndJump) return;
+        arcanoStepUp();
+    }, 200);
+}
+
+function stopArcanoUpWalk() {
+    if (arcanoUpWalkInterval) {
+        clearInterval(arcanoUpWalkInterval);
+        arcanoUpWalkInterval = null;
+    }
+}
+
+function arcanoStepUp() {
+    const ev = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    document.dispatchEvent(ev);
+}
+
+// ------------------------------------------------------
+//  MOVIMIENTO VERTICAL ABAJO (F–G–Bb–C) → ArrowDown
+// ------------------------------------------------------
+function startArcanoDownWalk() {
+    if (arcanoDownWalkInterval) return;
+
+    arcanoDownWalkInterval = setInterval(() => {
+        if (trapped || !enableMovementAndJump) return;
+        arcanoStepDown();
+    }, 200);
+}
+
+function stopArcanoDownWalk() {
+    if (arcanoDownWalkInterval) {
+        clearInterval(arcanoDownWalkInterval);
+        arcanoDownWalkInterval = null;
+    }
+}
+
+function arcanoStepDown() {
+    const ev = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+    document.dispatchEvent(ev);
+}
+
+// ------------------------------------------------------
+//  MOVIMIENTO ATRÁS / IZQUIERDA (Eb–F–G–Bb) → ArrowLeft
+// ------------------------------------------------------
+function startArcanoBackWalk() {
+    if (arcanoBackWalkInterval) return;
+
+    arcanoBackWalkInterval = setInterval(() => {
+        if (trapped || !enableMovementAndJump) return;
+        arcanoStepBack();
+    }, 200);
+}
+
+function stopArcanoBackWalk() {
+    if (arcanoBackWalkInterval) {
+        clearInterval(arcanoBackWalkInterval);
+        arcanoBackWalkInterval = null;
+    }
+}
+
+function arcanoStepBack() {
+    const ev = new KeyboardEvent('keydown', { key: 'ArrowLeft' });
+    document.dispatchEvent(ev);
+}
 
 
 // ======================================================
