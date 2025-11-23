@@ -226,7 +226,7 @@
             signInWithEmailAndPassword
         } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
-        const TARGET_URL = 'index.html'; // cambia si tu página principal tiene otro nombre
+        const TARGET_URL = 'arcano.html'; // cambia si tu página principal tiene otro nombre
 
         const firebaseConfig = {
             apiKey: "AIzaSyARA9tqBfkiFK80XcaWtS1ar6yglfmEh3g",
@@ -306,7 +306,7 @@
               // Aquí decides qué pasa tras la suscripción mensual
               console.log("Sub ID:", data.subscriptionID);
               // Redirige al Tarot Synthesizer
-              window.location.replace('index.html?sub=1');
+              window.location.replace('arcano.html?sub=1');
             }
         }).render('#paypal-button-container-P-6GY75953W2060241PNERGRHY');
       } else {
@@ -315,3 +315,4 @@
     </script>
 </body>
 </html>
+
